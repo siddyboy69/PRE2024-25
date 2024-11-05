@@ -12,8 +12,34 @@
     lastname VARCHAR(20) DEFAULT NULL,
     sex VARCHAR(12) NOT NULL DEFAULT 'thing',
     PRIMARY KEY (id)
-  );
+);
+
+DELIMITER //
+CREATE TRIGGER before_insert_user
+BEFORE INSERT ON user
+FOR EACH ROW
+BEGIN
+    IF NEW.is_admin = 1 THEN
+        -- Check if there's already an admin
+        IF (SELECT COUNT(*) FROM user WHERE is_admin = 1) >= 1 THEN
+            SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'Only one admin is allowed in the database.';
+        END IF;
+    END IF;
+END;
+//
+DELIMITER ;
+
+-- Insert the single allowed admin
 INSERT INTO user
 	(id, username, password,is_admin, firstname, lastname, sex)
-VALUES
-	(1, 'admin', 'admin',1, 'Admine', 'Adminsdorfer', 'female');
+VALUES	
+	(1, 'admin', 'admin',1, 'Admine', 'Adminsdorfer', 'F');
+
+INSERT INTO user
+	(id, username, password,is_admin, firstname, lastname, sex)
+VALUES	
+	(2, 'KHA210564', 'Donnerstag01',0, 'Siddhanta', 'Khadka', 'M');
+
+
+

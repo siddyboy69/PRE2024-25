@@ -7,7 +7,7 @@ export const userRouter = express.Router();
 // Route to get all users
 userRouter.get('/', (req, res) => {
     let data: User[] = [];
-    pool.query('SELECT * FROM user', (err, rows) => {
+    pool.query('SELECT * FROM user WHERE is_admin = 0', (err, rows) => {
         if (err) {
             console.log(err);
             res.status(500).send('Server error, please contact support.');
