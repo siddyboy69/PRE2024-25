@@ -1,0 +1,13 @@
+{
+  "dbConfig" : {
+    "host" : "localhost",
+    "user" : "root",
+    "pwd"  : "",
+    "database" : "Zeitausgleich",
+    "connectionLimit" : 13
+  },
+  "appConfig" : {
+    "port" : 3000,
+    "origin" : "http://localhost:4200"
+  }
+}
