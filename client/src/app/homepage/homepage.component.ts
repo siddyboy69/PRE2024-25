@@ -17,14 +17,17 @@ employees:any [] = [];
 constructor(
 private userService:UserService,
 private router: Router
-) {}
+) {
+  this.fetchEmployee();
+}
 
-  fetchEmployee():void{
-  this.userService.getUsers().subscribe({
-    next: (obj: any) => {
-      this.employees = obj.docs;
-    },
-    error: err => console.error(err)
-  })
+  fetchEmployee(): void {
+    this.userService.getUsers().subscribe({
+      next: (employees: any[]) => {
+        console.log('Fetched employees:', employees);
+        this.employees = employees;
+      },
+      error: err => console.error('Error fetching employees:', err)
+    });
   }
 }

@@ -60,7 +60,15 @@ export class UserService {
     );
   }
   getUsers(): Observable<any> {
-    return this.http.get<any>('http://localhost:3000/users');
+    return this.http.get<any>('http://localhost:3000/users').pipe(
+      tap(res => {
+        console.log('Users fetched:', res);
+      }),
+      catchError(err => {
+        console.error('Error fetching users:', err);
+        return of([]);
+      })
+    );
   }
 
 }

@@ -41,5 +41,8 @@ INSERT INTO user
 VALUES	
 	(2, 'KHA210564', 'Donnerstag01',0, 'Siddhanta', 'Khadka', 'M');
 
-
+INSERT INTO user
+	(id, username, password,is_admin, firstname, lastname, sex)
+VALUES
+	(3, 'GAG210648', '1234', 0, 'Tobias', 'Gagulic', 'M');
 
