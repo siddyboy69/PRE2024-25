@@ -1,0 +1,23 @@
+<div class="container">
+  <div class="form-container">
+    <h1>Add New Employee</h1>
+    <form (ngSubmit)="addEmployee()" #addEmployeeForm="ngForm">
+      <div class="form-group">
+        <input placeholder="First Name" [(ngModel)]="firstName" name="firstName" required />
+      </div>
+      <div class="form-group">
+        <input placeholder="Last Name" [(ngModel)]="lastName" name="lastName" required />
+      </div>
+      <div class="form-group">
+        <input placeholder="Username" [(ngModel)]="username" name="username" required />
+      </div>
+      <div class="form-group">
+        <input type="password" placeholder="Password" [(ngModel)]="password" name="password" required />
+      </div>
+      <div class="form-group">
+        <input placeholder="Sex" [(ngModel)]="sex" name="sex" required />
+      </div>
+      <button type="submit" [disabled]="addEmployeeForm.invalid">Add Employee</button>
+    </form>
+  </div>
+</div>

@@ -24,9 +24,10 @@ export class LoginComponent implements OnInit{
       next: (user: any) => {
         console.log('Login successful:', user);
         this.errorMessage = ''; // Clear any existing error message
-        const redirectUrl = localStorage.getItem('redirectUrl') || '';
+
+        const redirectUrl = user.isAdmin ? '/homepage' : '/homepage'; // Redirect both to the same route for simplicity
         localStorage.removeItem('redirectUrl');
-        this.router.navigate([redirectUrl || '']).then(() => {
+        this.router.navigate([redirectUrl]).then(() => {
           this.location.replaceState(''); // Clear the login page from browser history
         });
       },
@@ -36,6 +37,7 @@ export class LoginComponent implements OnInit{
       }
     });
   }
+
 
   ngOnInit(): void {
   }

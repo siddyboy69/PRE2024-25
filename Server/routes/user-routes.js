@@ -68,13 +68,19 @@ userRouter.post('/login/', (req, res, next) => {
 });
 
 userRouter.post('/register/', (req, res, next) => {
-    let sql = "INSERT INTO user (uuid, username, password) VALUES (uuid(), " +
-        pool.escape(req.body.username) + ", " + pool.escape(req.body.password) + ");";
+    // Adjusted SQL to include firstname, lastname, and sex
+    let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
+        pool.escape(req.body.username) + ", " +
+        pool.escape(req.body.password) + ", " +
+        pool.escape(req.body.firstname) + ", " +
+        pool.escape(req.body.lastname) + ", " +
+        pool.escape(req.body.sex) + ");";
 
     try {
         pool.query(sql, (err, rows) => {
             if (err) return next(err);
             if (rows.affectedRows > 0) {
+                // Retrieve the inserted user to confirm the details
                 pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
                     if (err) return next(err);
                     if (rws.length > 0) {
@@ -94,13 +100,14 @@ userRouter.post('/register/', (req, res, next) => {
                     }
                 });
             } else {
-                res.status(404).send("" + 0);
+                res.status(404).send("0");
             }
         });
     } catch (err) {
         next(err);
     }
 });
+
 
 userRouter.put('/update/', (req, res, next) => {
     let sql = "UPDATE user SET firstname = " + pool.escape(req.body.firstName) +

@@ -66,8 +66,13 @@ userRouter.post('/login/', (req, res, next) => {
 });
 
 userRouter.post('/register/', (req, res, next) => {
-    let sql = "INSERT INTO user (uuid, username, password) VALUES (uuid(), " +
-        pool.escape(req.body.username) + ", " + pool.escape(req.body.password) + ");";
+    let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
+        pool.escape(req.body.username) + ", " +
+        pool.escape(req.body.password) + ", " +
+        pool.escape(req.body.firstname) + ", " +
+        pool.escape(req.body.lastname) + ", " +
+        pool.escape(req.body.sex) + ");";
+
 
     try {
         pool.query(sql, (err, rows) => {
@@ -97,6 +102,8 @@ userRouter.post('/register/', (req, res, next) => {
         next(err);
     }
 });
+
+
 
 userRouter.put('/update/', (req, res, next) => {
     let sql = "UPDATE user SET firstname = " + pool.escape(req.body.firstName)

@@ -35,19 +35,13 @@ export class UserService {
       })
     );
   }
-
-  register(username: string, password: string, email: string, firstname: string, lastname: string, sex: string, address: string, postalcode: string, city: string, country: string): Observable<User> {
+  register(username: string, password: string, email: string, firstName: string, lastName: string, sex: string, address: string, postalcode: string, city: string, country: string): Observable<User> {
     return this.http.post<User>('http://localhost:3000/users/register', {
       username: username,
       password: password,
-      email: email,
-      firstname: firstname,
-      lastname: lastname,
-      sex: sex,
-      address: address,
-      postalcode: postalcode,
-      city: city,
-      country: country
+      firstname: firstName,  // Ensure correct field name
+      lastname: lastName,    // Ensure correct field name
+      sex: sex
     }).pipe(
       tap(res => {
         this.msg.addMessage('Register successful');
@@ -59,6 +53,7 @@ export class UserService {
       })
     );
   }
+
   getUsers(): Observable<any> {
     return this.http.get<any>('http://localhost:3000/users').pipe(
       tap(res => {

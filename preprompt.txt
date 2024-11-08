@@ -1,0 +1,1220 @@
+i am making a full stack web application. 
+
+in webstorm the first Thing i did was in docker i started my mariadb script. then i created a new mysql script that Looks like this: 
+
+    DROP DATABASE IF EXISTS Zeitausgleich;
+    CREATE DATABASE Zeitausgleich;
+    USE Zeitausgleich;
+
+  CREATE TABLE user (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    uuid VARCHAR(36) DEFAULT (UUID()),
+    username VARCHAR(20) NOT NULL UNIQUE,
+    password CHAR(60) NOT NULL,
+    is_admin TINYINT(1) NOT NULL DEFAULT 0,
+    firstname VARCHAR(20) DEFAULT NULL,
+    lastname VARCHAR(20) DEFAULT NULL,
+    sex VARCHAR(12) NOT NULL DEFAULT 'thing',
+    PRIMARY KEY (id)
+);
+
+DELIMITER //
+CREATE TRIGGER before_insert_user
+BEFORE INSERT ON user
+FOR EACH ROW
+BEGIN
+    IF NEW.is_admin = 1 THEN
+        -- Check if there's already an admin
+        IF (SELECT COUNT(*) FROM user WHERE is_admin = 1) >= 1 THEN
+            SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'Only one admin is allowed in the database.';
+        END IF;
+    END IF;
+END;
+//
+DELIMITER ;
+
+-- Insert the single allowed admin
+INSERT INTO user
+	(id, username, password,is_admin, firstname, lastname, sex)
+VALUES	
+	(1, 'admin', 'admin',1, 'Admine', 'Adminsdorfer', 'F');
+
+INSERT INTO user
+	(id, username, password,is_admin, firstname, lastname, sex)
+VALUES	
+	(2, 'KHA210564', 'Donnerstag01',0, 'Siddhanta', 'Khadka', 'M');
+
+INSERT INTO user
+	(id, username, password,is_admin, firstname, lastname, sex)
+VALUES
+	(3, 'GAG210648', '1234', 0, 'Tobias', 'Gagulic', 'M');
+
+
+
+then what i did is in webstorm i went to file -> new -> Project and then selected node.js Project. 
+
+
+this is everything i wrote in the terminal: 
+
+npm init -y
+npm install express 
+npm install --save-dev nodemon
+npm install mysql
+npm install --save-dev @types/mysql
+npm install config
+npm install --save-dev @types/config
+npm i --save-dev @types/express
+npm install cors
+npm install --save-dev @types/cors
+
+this is how the tsconfig.json looked like: 
+
+tsconfig.json:
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  }
+} 
+
+
+then what i did was that i created a Folder called config in the Project Directory: 
+
+config has the file db.ts in it: 
+import mysql from   'mysql';
+import config from 'config';
+
+const connectionLimit:number = config.get<number>('dbConfig.connectionLimit');
+const host:string = config.get<string>('dbConfig.host');
+const user:string = config.get<string>('dbConfig.user');
+const pwd:string = config.get<string>('dbConfig.pwd');
+const database:string = config.get<string>('dbConfig.database');
+export const pool = mysql.createPool({
+    connectionLimit: connectionLimit,
+    host: host,
+    user: user,
+    password: pwd,
+    database: database
+})
+
+
+this is how db.js Looks like: 
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.pool = void 0;
+const mysql_1 = __importDefault(require("mysql"));
+const config_1 = __importDefault(require("config"));
+const connectionLimit = config_1.default.get('dbConfig.connectionLimit');
+const host = config_1.default.get('dbConfig.host');
+const user = config_1.default.get('dbConfig.user');
+const pwd = config_1.default.get('dbConfig.pwd');
+const database = config_1.default.get('dbConfig.database');
+exports.pool = mysql_1.default.createPool({
+    connectionLimit: connectionLimit,
+    host: host,
+    user: user,
+    password: pwd,
+    database: database
+});
+
+and this is how Default.json looks like: 
+{
+  "dbConfig" : {
+    "host" : "localhost",
+    "user" : "root",
+    "pwd"  : "",
+    "database" : "Zeitausgleich",
+    "connectionLimit" : 13
+  },
+  "appConfig" : {
+    "port" : 3000,
+    "origin" : "http://localhost:4200"
+  }
+}
+
+then in the project directory i made another folder called model. 
+in the model folder i create a file called user.ts: 
+export class User {
+    constructor(public id:number = -1, public uuid:string="",public username:string="",public password:string="",
+                public isAdmin:boolean=false, public firstName:string="",public lastName:string="",
+                public sex=""){
+    }
+}
+
+user.js: 
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.User = void 0;
+
+class User {
+    constructor(id = -1, uuid = "", username = "", password = "", isAdmin = false, firstName = "", lastName = "", sex = "") {
+        this.id = id;
+        this.uuid = uuid;
+        this.username = username;
+        this.password = password;
+        this.isAdmin = isAdmin;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.sex = sex;
+    }
+}
+
+exports.User = User;
+
+then i made a folder called routes 
+in this folder i have a file called user-routes.ts: 
+import * as express from 'express';
+import { pool } from "../config/db";
+import { User } from "../model/user";
+
+export const userRouter = express.Router();
+
+// Route to get all users
+userRouter.get('/', (req, res) => {
+    let data: User[] = [];
+    pool.query('SELECT * FROM user WHERE is_admin = 0', (err, rows) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Server error, please contact support.');
+        } else {
+            for (let i = 0; i < rows.length; i++) {
+                data.push(new User(
+                    rows[i].id,
+                    rows[i].uuid,
+                    rows[i].username,
+                    rows[i].password,
+                    rows[i].is_admin,
+                    rows[i].firstname,
+                    rows[i].lastname,
+                    rows[i].sex
+                ));
+            }
+            console.log(data);
+            res.status(200).send(data);
+        }
+    });
+});
+
+userRouter.post('/login/', (req, res, next) => {
+    const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
+
+    pool.query(sqlUsernameCheck, (err, rows) => {
+        if (err) next(err);
+
+        if (rows.length === 0) {
+            return res.status(400).send({ message: 'Username does not exist' });
+        } else {
+            const sqlPasswordCheck = sqlUsernameCheck + " AND user.password=" + pool.escape(req.body.password);
+
+            pool.query(sqlPasswordCheck, (err, rows) => {
+                if (err) next(err);
+
+                if (rows.length === 0) {
+                    return res.status(400).send({ message: 'Password is incorrect' });
+                } else {
+                    let data = new User(
+                        rows[0].id,
+                        rows[0].uuid,
+                        rows[0].username,
+                        rows[0].password,
+                        rows[0].is_admin,
+                        rows[0].firstname,
+                        rows[0].lastname,
+                        rows[0].sex
+                    );
+                    console.log("-><<<< " + JSON.stringify(data));
+                    return res.status(200).send(data);
+                }
+            });
+        }
+    });
+});
+
+userRouter.post('/register/', (req, res, next) => {
+    let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
+        pool.escape(req.body.username) + ", " +
+        pool.escape(req.body.password) + ", " +
+        pool.escape(req.body.firstname) + ", " +
+        pool.escape(req.body.lastname) + ", " +
+        pool.escape(req.body.sex) + ");";
+
+
+    try {
+        pool.query(sql, (err, rows) => {
+            if (err) next(err);
+            else {
+                if (rows.affectedRows > 0) {
+                    pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
+                        if (err) next(err);
+                        else if (rws.length > 0) {
+                            let usr = {
+                                id: rws[0].id,
+                                uuid: rws[0].uuid,
+                                username: rws[0].username,
+                                password: rws[0].password,
+                                is_admin: rws[0].is_admin,
+                                firstname: rws[0].firstname,
+                                lastname: rws[0].lastname,
+                                sex: rws[0].sex
+                            };
+                            res.status(200).send(usr);
+                        } else res.status(404).send(null);
+                    });
+                } else res.status(404).send("" + 0);
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+
+userRouter.put('/update/', (req, res, next) => {
+    let sql = "UPDATE user SET firstname = " + pool.escape(req.body.firstName)
+        + ", lastname = " + pool.escape(req.body.lastName)
+        + ", sex = " + pool.escape(req.body.sex)
+        + " WHERE id = " + pool.escape(req.body.id);
+    console.log("_________   " + sql);
+    pool.query(sql, (err) => {
+        if (err) next(err);
+        res.status(200).send(null);
+    });
+});
+
+userRouter.delete('/delete/:id', (req, res, next) => {
+    const userId = req.params.id;
+    let sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
+        if (result.affectedRows > 0) {
+            res.status(200).send(`User with ID ${userId} deleted successfully.`);
+        } else {
+            res.status(404).send(`User with ID ${userId} not found.`);
+        }
+    });
+});
+
+user-routes.js: 
+"use strict";
+const express = require("express");
+const { pool } = require("../config/db");
+const { User } = require("../model/user");
+
+const userRouter = express.Router();
+exports.userRouter = userRouter;
+
+// Route to get all users
+userRouter.get('/', (req, res) => {
+    let data = [];
+    pool.query('SELECT * FROM user WHERE is_admin = 0', (err, rows) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Server error, please contact support.');
+        } else {
+            for (let i = 0; i < rows.length; i++) {
+                data.push(new User(
+                    rows[i].id,
+                    rows[i].uuid,
+                    rows[i].username,
+                    rows[i].password,
+                    rows[i].is_admin,
+                    rows[i].firstname,
+                    rows[i].lastname,
+                    rows[i].sex
+                ));
+            }
+            console.log(data);
+            res.status(200).send(data);
+        }
+    });
+});
+
+userRouter.post('/login/', (req, res, next) => {
+    const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
+
+    pool.query(sqlUsernameCheck, (err, rows) => {
+        if (err) return next(err);
+
+        if (rows.length === 0) {
+            return res.status(400).send({ message: 'Username does not exist' });
+        } else {
+            const sqlPasswordCheck = sqlUsernameCheck + " AND user.password=" + pool.escape(req.body.password);
+
+            pool.query(sqlPasswordCheck, (err, rows) => {
+                if (err) return next(err);
+
+                if (rows.length === 0) {
+                    return res.status(400).send({ message: 'Password is incorrect' });
+                } else {
+                    let data = new User(
+                        rows[0].id,
+                        rows[0].uuid,
+                        rows[0].username,
+                        rows[0].password,
+                        rows[0].is_admin,
+                        rows[0].firstname,
+                        rows[0].lastname,
+                        rows[0].sex
+                    );
+                    console.log("-><<<< " + JSON.stringify(data));
+                    return res.status(200).send(data);
+                }
+            });
+        }
+    });
+});
+
+userRouter.post('/register/', (req, res, next) => {
+    // Adjusted SQL to include firstname, lastname, and sex
+    let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
+        pool.escape(req.body.username) + ", " +
+        pool.escape(req.body.password) + ", " +
+        pool.escape(req.body.firstname) + ", " +
+        pool.escape(req.body.lastname) + ", " +
+        pool.escape(req.body.sex) + ");";
+
+    try {
+        pool.query(sql, (err, rows) => {
+            if (err) return next(err);
+            if (rows.affectedRows > 0) {
+                // Retrieve the inserted user to confirm the details
+                pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
+                    if (err) return next(err);
+                    if (rws.length > 0) {
+                        let usr = {
+                            id: rws[0].id,
+                            uuid: rws[0].uuid,
+                            username: rws[0].username,
+                            password: rws[0].password,
+                            is_admin: rws[0].is_admin,
+                            firstname: rws[0].firstname,
+                            lastname: rws[0].lastname,
+                            sex: rws[0].sex
+                        };
+                        res.status(200).send(usr);
+                    } else {
+                        res.status(404).send(null);
+                    }
+                });
+            } else {
+                res.status(404).send("0");
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+userRouter.put('/update/', (req, res, next) => {
+    let sql = "UPDATE user SET firstname = " + pool.escape(req.body.firstName) +
+        ", lastname = " + pool.escape(req.body.lastName) +
+        ", sex = " + pool.escape(req.body.sex) +
+        " WHERE id = " + pool.escape(req.body.id);
+
+    console.log("_________   " + sql);
+    pool.query(sql, (err) => {
+        if (err) return next(err);
+        res.status(200).send(null);
+    });
+});
+
+userRouter.delete('/delete/:id', (req, res, next) => {
+    const userId = req.params.id;
+    let sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
+        if (result.affectedRows > 0) {
+            res.status(200).send(`User with ID ${userId} deleted successfully.`);
+        } else {
+            res.status(404).send(`User with ID ${userId} not found.`);
+        }
+    });
+});
+
+the last file is called app.ts: 
+import express from 'express';
+import cors from 'cors';
+import { userRouter } from './routes/user-routes';
+
+
+const app = express();
+const port: number = 3000;
+const origin: string = 'http://localhost:4200';
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(cors({
+    origin: origin,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use('/users', userRouter);
+
+function errorHandler(err: any, req: any, res: any, next: any) {
+    if (res.headersSent) {
+        return next(err);
+    }
+    console.error(err);
+    res.status(500).send('Something broke! ' + err);
+}
+app.use(errorHandler);
+
+app.listen(port, () => {
+    console.log(`Example app listening on port ${port}`);
+});
+
+
+i tested all requests on postman and they all work. 
+
+moving on to the frontend: 
+
+i went on webstorm created a new Project -> angular cli 
+
+usual set up writing npm install and so on.
+i have a src Folder. 
+in the src Folder i have a _model Folder
+in the _model Folder i have this class: 
+user.ts: 
+export class User {
+  id: number = 0;
+  uuid: string = "";
+  username: string = "";
+  password: string = "";
+  isAdmin: boolean = false;
+  firstName: string = "";
+  lastName: string = "";
+  sex: string = "";
+
+  constructor(
+    id: number,
+    uuid: string,
+    username: string,
+    password: string,
+    isAdmin: boolean,
+    firstName: string,
+    lastName: string,
+    sex: string
+  ) {
+    this.id = id;
+    this.uuid = uuid;
+    this.username = username;
+    this.password = password;
+    this.isAdmin = isAdmin;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.sex = sex;
+  }
+}
+
+
+then i have a _Service Folder. 
+in the _Service Folder i have a message.service.ts: 
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MessageService {
+  private messages: string[] = [];
+
+  constructor() { }
+
+  addMessage(message: string): void {
+    this.messages.push(message);
+  }
+
+}
+
+
+in the _Service Folder i also have a user.service.ts: 
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { User } from '../_model/user';
+import { MessageService } from './message.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  user: User = new User(0, '', '', '', false, '', '', '');
+  constructor(private http: HttpClient, private msg: MessageService) { }
+
+  isLoggedIn(): boolean {
+    return this.user.id !== 0;
+  }
+
+  isAdmin(): boolean {
+    return this.user.isAdmin;
+  }
+
+  login(username: string, password: string): Observable<User> {
+    return this.http.post<User>('http://localhost:3000/users/login', {
+      username: username,
+      password: password
+    }).pipe(
+      tap(res => {
+        this.msg.addMessage('Login successful');
+        this.user = res;
+      }),
+      catchError(_ => {
+        this.msg.addMessage('Login failed');
+        return of();
+      })
+    );
+  }
+  register(username: string, password: string, email: string, firstName: string, lastName: string, sex: string, address: string, postalcode: string, city: string, country: string): Observable<User> {
+    return this.http.post<User>('http://localhost:3000/users/register', {
+      username: username,
+      password: password,
+      firstname: firstName,  
+      lastname: lastName,   
+      sex: sex
+    }).pipe(
+      tap(res => {
+        this.msg.addMessage('Register successful');
+        this.user = res;
+      }),
+      catchError(_ => {
+        this.msg.addMessage('Register failed');
+        return of();
+      })
+    );
+  }
+
+  getUsers(): Observable<any> {
+    return this.http.get<any>('http://localhost:3000/users').pipe(
+      tap(res => {
+        console.log('Users fetched:', res);
+      }),
+      catchError(err => {
+        console.error('Error fetching users:', err);
+        return of([]);
+      })
+    );
+  }
+
+}
+
+
+
+in the src Folder i also have a Folder called app: 
+in the app Folder i have another Folder called guards.
+in the guards Folder i have the following files: 
+admin.guard.spec.ts: 
+import { TestBed } from '@angular/core/testing';
+import { CanActivateFn } from '@angular/router';
+import { adminGuard } from './admin.guard';
+
+describe('adminGuard', () => {
+  const executeGuard: CanActivateFn = (...guardParameters) =>
+    TestBed.runInInjectionContext(() => adminGuard(...guardParameters));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+  });
+
+  it('should be created', () => {
+    expect(executeGuard).toBeTruthy();
+  });
+});
+admin.guard.ts: 
+import { CanActivateFn, Router } from '@angular/router';
+import { inject } from '@angular/core';
+import{UserService} from "../../_service/user.service";
+
+export const adminGuard: CanActivateFn = (route, state) => {
+  const user = inject(UserService).isAdmin();
+  if (!user) {
+    inject(Router).navigate(['/']).then();
+  }
+  return user;
+};
+
+user.guard.spec.ts:
+import { TestBed } from '@angular/core/testing';
+import { CanActivateFn } from '@angular/router';
+import { userGuard } from './user.guard';
+
+describe('userGuard', () => {
+  const executeGuard: CanActivateFn = (...guardParameters) =>
+    TestBed.runInInjectionContext(() => userGuard(...guardParameters));
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+  });
+
+  it('should be created', () => {
+    expect(executeGuard).toBeTruthy();
+  });
+});
+
+user.guard.ts: 
+import { CanActivateFn, Router, UrlTree, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { UserService } from "../../_service/user.service";
+import { MessageService } from "../../_service/message.service";
+
+export const userGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean | UrlTree => {
+  const userService = inject(UserService);
+  const router = inject(Router);
+  const messageService = inject(MessageService);
+
+  if (!userService.isLoggedIn()) {
+    messageService.addMessage('You need to log in to access the book details.');
+    localStorage.setItem('redirectUrl', state.url);
+    return router.createUrlTree(['/login']);
+  }
+
+  return true;
+};
+
+in the app Folder i also have another component (Folder) called Homepage. 
+
+this is how the Homepage Folder Looks like: 
+first i have a Homepage.component.html:
+<div *ngIf="isAdmin; else notAdmin">
+  <div class="container">
+    <!-- Add Employee Button for Admins Only -->
+    <button (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
+    <div class="employee-container">
+      <div class="employee" *ngFor="let employee of employees">
+        <h3>{{ employee.firstName + ' ' + employee.lastName }}</h3>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #notAdmin>
+  <p>No content available.</p>
+</ng-template>
+
+
+then i have a Homepage.component.ts: 
+import { Component } from '@angular/core';
+import { UserService } from '../../_service/user.service';
+import {FormsModule} from '@angular/forms';
+import {RouterLink} from '@angular/router';
+import {CommonModule} from '@angular/common';
+import { Router } from '@angular/router';
+@Component({
+  selector: 'app-homepage',
+  standalone: true,
+  imports: [FormsModule, RouterLink, CommonModule],
+  templateUrl: './homepage.component.html',
+  styleUrl: './homepage.component.css'
+})
+export class HomepageComponent {
+  employees: any[] = [];
+  isAdmin: boolean = false;
+
+  constructor(private userService: UserService,private router: Router) {
+    this.isAdmin = this.userService.isAdmin();
+    if (this.isAdmin) {
+      this.fetchEmployee();
+    }
+  }
+
+  fetchEmployee(): void {
+    this.userService.getUsers().subscribe({
+      next: (employees: any[]) => {
+        console.log('Fetched employees:', employees);
+        this.employees = employees;
+      },
+      error: err => console.error('Error fetching employees:', err)
+    });
+  }
+  navigateToAddMitarbeiter(): void {
+    this.router.navigate(['/add-mitarbeiter']);
+  }
+}
+
+then i have a homepage.component.spec.ts: 
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { HomepageComponent } from './homepage.component';
+
+describe('HomepageComponent', () => {
+  let component: HomepageComponent;
+  let fixture: ComponentFixture<HomepageComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [HomepageComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(HomepageComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+and then i have a Homepage.componnt.css: 
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+  /*background-color: #f9f9f9;*/
+  font-family: Arial, sans-serif;
+}
+
+.employee-container {
+  display: flex;
+  flex-direction: column; /* flex-direction: row; geht auch was man halt visuell mehr präferiert */
+  gap: 15px;
+  max-width: 400px;
+  width: 100%;
+  align-items: center;
+}
+
+.employee {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+
+/*
+verweist auf alle h3 tags in denen sich employees befinden, sollten andere h3 elemente drinnen sein wird dieses css für die ignoriert
+  => zb wenn ich im employee div noch ein h3 element habe mit anderem content wird das css für diesen h3 tag nicht implementiert
+*/
+.employee h3 {
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0;
+  padding-top: 10px ;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0; /* kann man für ästhetische zwecke lassen (grauer strich erscheint dann unterm namen von der person */
+  transition: color 0.3s ease;
+}
+
+/* das die boxen sich bewegen wenn man drüberhovert */
+.employee:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.employee h3:hover {
+  color: #A7D46C;
+}
+
+@media (max-width: 768px) {
+  .employee {
+    max-width: 100%;
+  }
+}
+
+in the app Folder i have another Folder (component) called Login that Looks like so: 
+
+Login.component.html: 
+<div class="login-parent-container">
+  <div class="login-container">
+    <h1>Login</h1>
+    <form (ngSubmit)="login()" #loginForm="ngForm">
+      <div class="form-group">
+        <input matInput placeholder="Username" name="username" [(ngModel)]="username" required>
+      </div>
+      <div class="form-group">
+        <input matInput type="password" placeholder="Password" name="password" [(ngModel)]="password" required>
+      </div>
+      <div class="form-group">
+        <button mat-raised-button type="submit" [disabled]="loginForm.invalid">Login</button>
+      </div>
+      <div class="error-message">
+        {{ errorMessage }}
+      </div>
+    </form>
+  </div>
+</div>
+
+Login.component.ts: 
+import {Component, OnInit} from '@angular/core';
+import { UserService } from '../../_service/user.service';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Location } from '@angular/common';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  templateUrl: './login.component.html',
+  imports: [FormsModule, RouterLink, CommonModule],
+  styleUrls: ['./login.component.css']
+})
+export class LoginComponent implements OnInit{
+  username: string = '';
+  password: string = '';
+  errorMessage: string = '';
+
+  constructor(private userService: UserService, private router: Router, private location: Location) {}
+
+  login(): void {
+    this.userService.login(this.username, this.password).subscribe({
+      next: (user: any) => {
+        console.log('Login successful:', user);
+        this.errorMessage = ''; // Clear any existing error message
+
+        const redirectUrl = user.isAdmin ? '/homepage' : '/homepage'; // Redirect both to the same route for simplicity
+        localStorage.removeItem('redirectUrl');
+        this.router.navigate([redirectUrl]).then(() => {
+          this.location.replaceState(''); // Clear the login page from browser history
+        });
+      },
+      error: (err: any) => {
+        console.log('Login failed:', err);
+        this.errorMessage = 'Login failed. Please check your credentials and try again.';
+      }
+    });
+  }
+
+
+  ngOnInit(): void {
+  }
+}
+
+login.component.spec.ts: 
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { LoginComponent } from './login.component';
+
+describe('LoginComponent', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [LoginComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+Login.component.css: 
+.login-parent-container {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #A7D46C, #66A6FF);
+}
+
+.login-container {
+  background: #ffffff;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-container h1 {
+  color: #333;
+  font-size: 24px;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+input[matInput] {
+  width: 93%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  transition: border-color 0.3s ease;
+}
+
+input[matInput]:focus {
+  border-color: #A7D46C;
+  outline: none;
+}
+
+button[mat-raised-button] {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #A7D46C;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button[mat-raised-button]:hover {
+  background-color: #92C257;
+}
+
+button[mat-raised-button]:disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 1rem;
+}
+
+i also have a compoent called add-mitarbeiter
+
+in this Folder i have another four files: 
+add-mitarbeiter.component.html: 
+<div class="container">
+  <div class="form-container">
+    <h1>Add New Employee</h1>
+    <form (ngSubmit)="addEmployee()" #addEmployeeForm="ngForm">
+      <div class="form-group">
+        <input placeholder="First Name" [(ngModel)]="firstName" name="firstName" required />
+      </div>
+      <div class="form-group">
+        <input placeholder="Last Name" [(ngModel)]="lastName" name="lastName" required />
+      </div>
+      <div class="form-group">
+        <input placeholder="Username" [(ngModel)]="username" name="username" required />
+      </div>
+      <div class="form-group">
+        <input type="password" placeholder="Password" [(ngModel)]="password" name="password" required />
+      </div>
+      <div class="form-group">
+        <input placeholder="Sex" [(ngModel)]="sex" name="sex" required />
+      </div>
+      <button type="submit" [disabled]="addEmployeeForm.invalid">Add Employee</button>
+    </form>
+  </div>
+</div>
+
+add-mitarbeiter.component.css:
+empty
+add-mitarbeiter.component.ts:
+import { Component } from '@angular/core';
+import { UserService } from '../../_service/user.service';
+import { Router } from '@angular/router';
+import {FormsModule} from '@angular/forms';
+
+@Component({
+  selector: 'app-add-mitarbeiter',
+  standalone: true,
+  templateUrl: './add-mitarbeiter.component.html',
+  imports: [
+    FormsModule
+  ],
+  styleUrls: ['./add-mitarbeiter.component.css']
+})
+export class AddMitarbeiterComponent {
+  firstName: string = '';
+  lastName: string = '';
+  username: string = '';
+  password: string = '';
+  sex: string = '';
+
+  constructor(private userService: UserService, private router: Router) {}
+
+  addEmployee(): void {
+    const employeeData = {
+      username: this.username,
+      password: this.password,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      sex: this.sex
+    };
+
+    this.userService.register(
+      this.username, this.password, '', this.firstName, this.lastName, this.sex, '', '', '', ''
+    ).subscribe({
+      next: () => {
+        console.log('Employee added successfully');
+        this.router.navigate(['/homepage']);
+      },
+      error: (err) => {
+        console.error('Failed to add employee:', err);
+      }
+    });
+  }
+}
+
+add-mitarbeiter.component.spec.ts: 
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { AddMitarbeiterComponent } from './add-mitarbeiter.component';
+
+describe('AddMitarbeiterComponent', () => {
+  let component: AddMitarbeiterComponent;
+  let fixture: ComponentFixture<AddMitarbeiterComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AddMitarbeiterComponent]
+    })
+    .compileComponents();
+
+    fixture = TestBed.createComponent(AddMitarbeiterComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
+
+then i have a file in the app Folder called: 
+app.component.css: 
+which is empty
+app.component.html: 
+<router-outlet></router-outlet>
+
+app.component.spec.ts:
+import { TestBed } from '@angular/core/testing';
+import { AppComponent } from './app.component';
+
+describe('AppComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+    }).compileComponents();
+  });
+
+  it('should create the app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it(`should have the 'client' title`, () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app.title).toEqual('client');
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, client');
+  });
+});
+
+app.component.ts: 
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css'
+})
+export class AppComponent {
+  title = 'client';
+}
+
+app.config.ts: 
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
+import {provideHttpClient} from '@angular/common/http';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideHttpClient()]
+};
+
+and then the final file: 
+app.routes.ts: 
+import { Routes } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { HomepageComponent } from './homepage/homepage.component';
+import { adminGuard } from './guards/admin.guard';
+import { userGuard } from './guards/user.guard';
+import { AddMitarbeiterComponent } from './add-mitarbeiter/add-mitarbeiter.component';
+
+export const routes: Routes = [
+  { path: '', component: LoginComponent },
+  { path: 'homepage', component: HomepageComponent, canActivate: [userGuard] },
+  { path: 'add-mitarbeiter', component: AddMitarbeiterComponent, canActivate: [adminGuard] }
+];
+
+in the src Folder i have a file called index.html: 
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Client</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
+
+main.ts: 
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err: any) => console.error(err));
+
+styles.css: 
+/* You can add global styles to this file, and also import other style files */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+
