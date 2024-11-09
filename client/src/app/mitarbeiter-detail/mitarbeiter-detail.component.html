@@ -1,0 +1,10 @@
+<div *ngIf="employee">
+  <h2>Employee Details</h2>
+  <p><strong>Username:</strong> {{ employee.username }}</p>
+  <p><strong>First Name:</strong> {{ employee.firstname }}</p>
+  <p><strong>Last Name:</strong> {{ employee.lastname}}</p>
+  <p><strong>Sex:</strong> {{ employee.sex }}</p>
+</div>
+<div *ngIf="!employee">
+  <p>Loading...</p>
+</div>

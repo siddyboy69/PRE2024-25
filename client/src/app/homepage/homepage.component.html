@@ -1,15 +1,13 @@
 <div *ngIf="isAdmin; else notAdmin">
   <div class="container">
-    <!-- Add Employee Button for Admins Only -->
     <button (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
     <div class="employee-container">
-      <div class="employee" *ngFor="let employee of employees">
+      <div class="employee" *ngFor="let employee of employees" (click)="navigateToDetail(employee.id)">
         <h3>{{ employee.firstName + ' ' + employee.lastName }}</h3>
       </div>
     </div>
   </div>
 </div>
-
 <ng-template #notAdmin>
   <p>No content available.</p>
 </ng-template>

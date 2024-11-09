@@ -34,4 +34,8 @@ export class HomepageComponent {
   navigateToAddMitarbeiter(): void {
     this.router.navigate(['/add-mitarbeiter']);
   }
+  navigateToDetail(id: number): void {
+    this.router.navigate(['/mitarbeiter-detail', id]);
+  }
+
 }

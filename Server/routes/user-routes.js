@@ -137,3 +137,15 @@ userRouter.delete('/delete/:id', (req, res, next) => {
         }
     });
 });
+userRouter.get('/:id', (req, res, next) => {
+    const userId = req.params.id;
+    pool.query('SELECT username, firstname, lastname, sex FROM user WHERE id = ?', [userId], (err, rows) => {
+        if (err) return next(err);
+        if (rows.length > 0) {
+            res.status(200).send(rows[0]);
+        } else {
+            res.status(404).send({ message: 'User not found' });
+        }
+    });
+});
+

@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from '../_model/user';
 import { MessageService } from './message.service';
-
+import { map } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
@@ -65,6 +65,18 @@ export class UserService {
       })
     );
   }
-
+  getUserById(id: number): Observable<User> {
+    return this.http.get<any>(`http://localhost:3000/users/${id}`).pipe(
+      map(employeeData => new User(
+        employeeData.id,
+        employeeData.uuid,
+        employeeData.username,
+        '', // Password can be set to an empty string for detail views
+        employeeData.is_admin || false, // Ensure `isAdmin` defaults to `false`
+        employeeData.firstname, // Map `firstname` to `firstName`
+        employeeData.lastname,  // Map `lastname` to `lastName`
+        employeeData.sex
+      ))
+    );
+  }
 }
-
