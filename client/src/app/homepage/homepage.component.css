@@ -1,4 +1,3 @@
-/* Position the log out button in the top right corner */
 .logout-button {
   position: absolute;
   top: 20px;
@@ -15,4 +14,67 @@
 
 .logout-button:hover {
   background-color: #c0392b;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+  /*background-color: #f9f9f9;*/
+  font-family: Arial, sans-serif;
+}
+
+.employee-container {
+  display: flex;
+  flex-direction: column; /* flex-direction: row; geht auch was man halt visuell mehr präferiert */
+  gap: 15px;
+  max-width: 400px;
+  width: 100%;
+  align-items: center;
+}
+
+.employee {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 100%;
+  max-width: 300px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+
+/*
+verweist auf alle h3 tags in denen sich employees befinden, sollten andere h3 elemente drinnen sein wird dieses css für die ignoriert
+  => zb wenn ich im employee div noch ein h3 element habe mit anderem content wird das css für diesen h3 tag nicht implementiert
+*/
+.employee h3 {
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0;
+  padding-top: 10px ;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f0f0f0; /* kann man für ästhetische zwecke lassen (grauer strich erscheint dann unterm namen von der person */
+  transition: color 0.3s ease;
+}
+
+/* das die boxen sich bewegen wenn man drüberhovert */
+.employee:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.employee h3:hover {
+  color: #A7D46C;
+}
+
+@media (max-width: 768px) {
+  .employee {
+    max-width: 100%;
+  }
 }
