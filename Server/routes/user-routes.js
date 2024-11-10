@@ -3,12 +3,34 @@ const express = require("express");
 const { pool } = require("../config/db");
 const { User } = require("../model/user");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const userRouter = express.Router();
 exports.userRouter = userRouter;
 
-// Route to get all users
-userRouter.get("/", (req, res) => {
+// Secret key for JWT (in production, store in environment variables)
+const JWT_SECRET = process.env.JWT_SECRET;
+
+
+// Middleware to verify JWT token
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1]; // Extract token from 'Bearer <token>'
+
+    if (!token) {
+        return res.status(403).send({ message: 'No token provided!' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: 'Unauthorized!' });
+        }
+        req.userId = decoded.id; // Save user ID for future use
+        next();
+    });
+};
+
+// Route to get all users (non-admins only)
+userRouter.get("/", verifyToken, (req, res) => {
     let data = [];
     pool.query("SELECT * FROM user WHERE is_admin = 0", (err, rows) => {
         if (err) {
@@ -35,7 +57,7 @@ userRouter.get("/", (req, res) => {
     });
 });
 
-// Login route with password comparison using bcrypt
+// Login route with password comparison using bcrypt and JWT generation
 userRouter.post("/login/", (req, res, next) => {
     const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
 
@@ -51,6 +73,13 @@ userRouter.post("/login/", (req, res, next) => {
             if (!isPasswordMatch) {
                 return res.status(400).send({ message: "Password is incorrect" });
             } else {
+                // Generate JWT token
+                const token = jwt.sign(
+                    { id: user.id, username: user.username, isAdmin: user.is_admin },
+                    JWT_SECRET,
+                    { expiresIn: '1h' } // Token expires in 1 hour
+                );
+
                 const data = new User(
                     user.id,
                     user.uuid,
@@ -61,8 +90,9 @@ userRouter.post("/login/", (req, res, next) => {
                     user.lastname,
                     user.sex
                 );
+
                 console.log("-><<<< " + JSON.stringify(data));
-                return res.status(200).send(data);
+                return res.status(200).send({ user: data, token }); // Send user data and token
             }
         }
     });
@@ -101,7 +131,7 @@ userRouter.post("/register/", async (req, res, next) => {
                     }
                 });
             } else {
-                res.status(404).send("0");
+                res.status(404).send("User not created.");
             }
         });
     } catch (err) {
@@ -109,8 +139,8 @@ userRouter.post("/register/", async (req, res, next) => {
     }
 });
 
-// Update user details
-userRouter.put("/update/", (req, res, next) => {
+// Update user details (protected)
+userRouter.put("/update/", verifyToken, (req, res, next) => {
     let sql = "UPDATE user SET firstname = " + pool.escape(req.body.firstName) +
         ", lastname = " + pool.escape(req.body.lastName) +
         ", sex = " + pool.escape(req.body.sex) +
@@ -118,12 +148,12 @@ userRouter.put("/update/", (req, res, next) => {
     console.log("_________   " + sql);
     pool.query(sql, (err) => {
         if (err) return next(err);
-        res.status(200).send(null);
+        res.status(200).send("User updated successfully.");
     });
 });
 
-// Delete user by ID
-userRouter.delete("/delete/:id", (req, res, next) => {
+// Delete user by ID (protected)
+userRouter.delete("/delete/:id", verifyToken, (req, res, next) => {
     const userId = req.params.id;
     let sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
     pool.query(sql, (err, result) => {
@@ -139,8 +169,8 @@ userRouter.delete("/delete/:id", (req, res, next) => {
     });
 });
 
-// Get user details by ID without sending password
-userRouter.get("/:id", (req, res, next) => {
+// Get user details by ID without sending password (protected)
+userRouter.get("/:id", verifyToken, (req, res, next) => {
     const userId = req.params.id;
     pool.query("SELECT username, firstname, lastname, sex FROM user WHERE id = ?", [userId], (err, rows) => {
         if (err) return next(err);

@@ -2,35 +2,39 @@ import * as express from 'express';
 import { pool } from "../config/db";
 import { User } from "../model/user";
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 export const userRouter = express.Router();
 
-// Route to get all users
+// Secret key for JWT (use environment variables for production)
+const JWT_SECRET = 'your_secret_key'; // Replace with an actual secret or use env variables
+
+// Route to get all users (non-admins only)
 userRouter.get('/', (req, res) => {
     let data: User[] = [];
     pool.query('SELECT * FROM user WHERE is_admin = 0', (err, rows) => {
         if (err) {
             console.log(err);
-            res.status(500).send('Server error, please contact support.');
-        } else {
-            for (let i = 0; i < rows.length; i++) {
-                data.push(new User(
-                    rows[i].id,
-                    rows[i].uuid,
-                    rows[i].username,
-                    rows[i].password,
-                    rows[i].is_admin,
-                    rows[i].firstname,
-                    rows[i].lastname,
-                    rows[i].sex
-                ));
-            }
-            console.log(data);
-            res.status(200).send(data);
+            return res.status(500).send('Server error, please contact support.');
         }
+        for (let row of rows) {
+            data.push(new User(
+                row.id,
+                row.uuid,
+                row.username,
+                row.password,
+                row.is_admin,
+                row.firstname,
+                row.lastname,
+                row.sex
+            ));
+        }
+        console.log(data);
+        res.status(200).send(data);
     });
 });
 
+// Login route - Verifies user credentials, generates JWT on success
 userRouter.post('/login/', (req, res, next) => {
     const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
 
@@ -39,48 +43,55 @@ userRouter.post('/login/', (req, res, next) => {
 
         if (rows.length === 0) {
             return res.status(400).send({ message: 'Username does not exist' });
-        } else {
-            const user = rows[0];
-            const isPasswordMatch = await bcrypt.compare(req.body.password, user.password);
-
-            if (!isPasswordMatch) {
-                return res.status(400).send({ message: 'Password is incorrect' });
-            } else {
-                const data = new User(
-                    user.id,
-                    user.uuid,
-                    user.username,
-                    user.password,
-                    user.is_admin,
-                    user.firstname,
-                    user.lastname,
-                    user.sex
-                );
-                console.log("-><<<< " + JSON.stringify(data));
-                return res.status(200).send(data);
-            }
         }
+
+        const user = rows[0];
+        const isPasswordMatch = await bcrypt.compare(req.body.password, user.password);
+
+        if (!isPasswordMatch) {
+            return res.status(400).send({ message: 'Password is incorrect' });
+        }
+
+        // Generate JWT token on successful login
+        const token = jwt.sign(
+            { id: user.id, username: user.username, isAdmin: user.is_admin },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        const data = new User(
+            user.id,
+            user.uuid,
+            user.username,
+            user.password,
+            user.is_admin,
+            user.firstname,
+            user.lastname,
+            user.sex
+        );
+
+        console.log("-><<<< " + JSON.stringify(data));
+        res.status(200).send({ user: data, token }); // Send user data and token
     });
 });
 
-
+// Registration route - Hashes password and registers a new user
 userRouter.post('/register/', async (req, res, next) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
-            pool.escape(req.body.username) + ", " +
-            pool.escape(hashedPassword) + ", " +
-            pool.escape(req.body.firstname) + ", " +
-            pool.escape(req.body.lastname) + ", " +
-            pool.escape(req.body.sex) + ");";
+        const sql = `INSERT INTO user (uuid, username, password, firstname, lastname, sex) 
+                     VALUES (uuid(), ${pool.escape(req.body.username)}, ${pool.escape(hashedPassword)}, 
+                             ${pool.escape(req.body.firstname)}, ${pool.escape(req.body.lastname)}, 
+                             ${pool.escape(req.body.sex)});`;
 
         pool.query(sql, (err, rows) => {
             if (err) return next(err);
+
             if (rows.affectedRows > 0) {
                 pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
                     if (err) return next(err);
                     if (rws.length > 0) {
-                        let usr = {
+                        const usr = {
                             id: rws[0].id,
                             uuid: rws[0].uuid,
                             username: rws[0].username,
@@ -96,7 +107,7 @@ userRouter.post('/register/', async (req, res, next) => {
                     }
                 });
             } else {
-                res.status(404).send("0");
+                res.status(404).send("User not created.");
             }
         });
     } catch (err) {
@@ -104,24 +115,24 @@ userRouter.post('/register/', async (req, res, next) => {
     }
 });
 
-
-
-
+// Update user details
 userRouter.put('/update/', (req, res, next) => {
-    let sql = "UPDATE user SET firstname = " + pool.escape(req.body.firstName)
-        + ", lastname = " + pool.escape(req.body.lastName)
-        + ", sex = " + pool.escape(req.body.sex)
-        + " WHERE id = " + pool.escape(req.body.id);
+    const sql = `UPDATE user SET firstname = ${pool.escape(req.body.firstName)}, 
+                                 lastname = ${pool.escape(req.body.lastName)}, 
+                                 sex = ${pool.escape(req.body.sex)} 
+                 WHERE id = ${pool.escape(req.body.id)}`;
     console.log("_________   " + sql);
     pool.query(sql, (err) => {
-        if (err) next(err);
-        res.status(200).send(null);
+        if (err) return next(err);
+        res.status(200).send('User updated successfully.');
     });
 });
 
+// Delete user by ID
 userRouter.delete('/delete/:id', (req, res, next) => {
     const userId = req.params.id;
-    let sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
+    const sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
+
     pool.query(sql, (err, result) => {
         if (err) {
             console.log(err);
@@ -134,6 +145,8 @@ userRouter.delete('/delete/:id', (req, res, next) => {
         }
     });
 });
+
+// Get user details by ID (excluding password)
 userRouter.get('/:id', (req, res, next) => {
     const userId = req.params.id;
     pool.query('SELECT username, firstname, lastname, sex FROM user WHERE id = ?', [userId], (err, rows) => {
@@ -145,4 +158,3 @@ userRouter.get('/:id', (req, res, next) => {
         }
     });
 });
-
