@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../_service/user.service';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -12,7 +12,7 @@ import { Location } from '@angular/common';
   imports: [FormsModule, RouterLink, CommonModule],
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit {
   username: string = '';
   password: string = '';
   errorMessage: string = '';
@@ -24,11 +24,11 @@ export class LoginComponent implements OnInit{
       next: (user: any) => {
         console.log('Login successful:', user);
         this.errorMessage = ''; // Clear any existing error message
+        const redirectUrl = user.isAdmin ? '/homepage' : '/homepage';
 
-        const redirectUrl = user.isAdmin ? '/homepage' : '/homepage'; // Redirect both to the same route for simplicity
-        localStorage.removeItem('redirectUrl');
+        // Navigate to the redirect URL and replace the login URL in the history
         this.router.navigate([redirectUrl]).then(() => {
-          this.location.replaceState(''); // Clear the login page from browser history
+          this.location.replaceState('/homepage');
         });
       },
       error: (err: any) => {
@@ -38,7 +38,5 @@ export class LoginComponent implements OnInit{
     });
   }
 
-
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 }

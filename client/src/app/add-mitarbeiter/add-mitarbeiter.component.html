@@ -15,7 +15,13 @@
         <input type="password" placeholder="Password" [(ngModel)]="password" name="password" required />
       </div>
       <div class="form-group">
-        <input placeholder="Sex" [(ngModel)]="sex" name="sex" required />
+        <!-- Dropdown menu for selecting sex -->
+        <select [(ngModel)]="sex" name="sex" required>
+          <option value="" disabled selected>Select Sex</option>
+          <option value="Männlich">Männlich</option>
+          <option value="Weiblich">Weiblich</option>
+          <option value="Divers">Divers</option>
+        </select>
       </div>
       <button type="submit" [disabled]="addEmployeeForm.invalid">Add Employee</button>
     </form>

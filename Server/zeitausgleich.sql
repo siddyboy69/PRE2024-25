@@ -36,4 +36,4 @@ INSERT INTO user
 VALUES	
 	(1, 'admin', 'admin',1, 'Admine', 'Adminsdorfer', 'F');
 
-
+select * from user; 

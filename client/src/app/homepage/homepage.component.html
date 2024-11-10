@@ -1,13 +1,19 @@
-<div *ngIf="isAdmin; else notAdmin">
-  <div class="container">
-    <button (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
-    <div class="employee-container">
-      <div class="employee" *ngFor="let employee of employees" (click)="navigateToDetail(employee.id)">
-        <h3>{{ employee.firstName + ' ' + employee.lastName }}</h3>
+<div class="container">
+  <!-- Log Out Button in the top right corner -->
+  <button class="logout-button" (click)="logout()">Log Out</button>
+
+  <!-- Existing content for admin and employee views -->
+  <div *ngIf="isAdmin; else notAdmin">
+    <div class="admin-container">
+      <button (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
+      <div class="employee-container">
+        <div class="employee" *ngFor="let employee of employees" (click)="navigateToDetail(employee.id)">
+          <h3>{{ employee.firstName + ' ' + employee.lastName }}</h3>
+        </div>
       </div>
     </div>
   </div>
+  <ng-template #notAdmin>
+    <p>No content available.</p>
+  </ng-template>
 </div>
-<ng-template #notAdmin>
-  <p>No content available.</p>
-</ng-template>
