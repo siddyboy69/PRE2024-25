@@ -30,10 +30,3 @@ END;
 //
 DELIMITER ;
 
--- Insert the single allowed admin
-INSERT INTO user
-	(id, username, password,is_admin, firstname, lastname, sex)
-VALUES	
-	(1, 'admin', 'admin',1, 'Admine', 'Adminsdorfer', 'F');
-
-select * from user; 

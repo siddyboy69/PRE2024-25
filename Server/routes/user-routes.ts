@@ -1,6 +1,7 @@
 import * as express from 'express';
 import { pool } from "../config/db";
 import { User } from "../model/user";
+import bcrypt from 'bcrypt';
 
 export const userRouter = express.Router();
 
@@ -33,75 +34,76 @@ userRouter.get('/', (req, res) => {
 userRouter.post('/login/', (req, res, next) => {
     const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
 
-    pool.query(sqlUsernameCheck, (err, rows) => {
-        if (err) next(err);
+    pool.query(sqlUsernameCheck, async (err, rows) => {
+        if (err) return next(err);
 
         if (rows.length === 0) {
             return res.status(400).send({ message: 'Username does not exist' });
         } else {
-            const sqlPasswordCheck = sqlUsernameCheck + " AND user.password=" + pool.escape(req.body.password);
+            const user = rows[0];
+            const isPasswordMatch = await bcrypt.compare(req.body.password, user.password);
 
-            pool.query(sqlPasswordCheck, (err, rows) => {
-                if (err) next(err);
-
-                if (rows.length === 0) {
-                    return res.status(400).send({ message: 'Password is incorrect' });
-                } else {
-                    let data = new User(
-                        rows[0].id,
-                        rows[0].uuid,
-                        rows[0].username,
-                        rows[0].password,
-                        rows[0].is_admin,
-                        rows[0].firstname,
-                        rows[0].lastname,
-                        rows[0].sex
-                    );
-                    console.log("-><<<< " + JSON.stringify(data));
-                    return res.status(200).send(data);
-                }
-            });
+            if (!isPasswordMatch) {
+                return res.status(400).send({ message: 'Password is incorrect' });
+            } else {
+                const data = new User(
+                    user.id,
+                    user.uuid,
+                    user.username,
+                    user.password,
+                    user.is_admin,
+                    user.firstname,
+                    user.lastname,
+                    user.sex
+                );
+                console.log("-><<<< " + JSON.stringify(data));
+                return res.status(200).send(data);
+            }
         }
     });
 });
 
-userRouter.post('/register/', (req, res, next) => {
-    let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
-        pool.escape(req.body.username) + ", " +
-        pool.escape(req.body.password) + ", " +
-        pool.escape(req.body.firstname) + ", " +
-        pool.escape(req.body.lastname) + ", " +
-        pool.escape(req.body.sex) + ");";
 
-
+userRouter.post('/register/', async (req, res, next) => {
     try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        let sql = "INSERT INTO user (uuid, username, password, firstname, lastname, sex) VALUES (uuid(), " +
+            pool.escape(req.body.username) + ", " +
+            pool.escape(hashedPassword) + ", " +
+            pool.escape(req.body.firstname) + ", " +
+            pool.escape(req.body.lastname) + ", " +
+            pool.escape(req.body.sex) + ");";
+
         pool.query(sql, (err, rows) => {
-            if (err) next(err);
-            else {
-                if (rows.affectedRows > 0) {
-                    pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
-                        if (err) next(err);
-                        else if (rws.length > 0) {
-                            let usr = {
-                                id: rws[0].id,
-                                uuid: rws[0].uuid,
-                                username: rws[0].username,
-                                password: rws[0].password,
-                                is_admin: rws[0].is_admin,
-                                firstname: rws[0].firstname,
-                                lastname: rws[0].lastname,
-                                sex: rws[0].sex
-                            };
-                            res.status(200).send(usr);
-                        } else res.status(404).send(null);
-                    });
-                } else res.status(404).send("" + 0);
+            if (err) return next(err);
+            if (rows.affectedRows > 0) {
+                pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
+                    if (err) return next(err);
+                    if (rws.length > 0) {
+                        let usr = {
+                            id: rws[0].id,
+                            uuid: rws[0].uuid,
+                            username: rws[0].username,
+                            password: rws[0].password,
+                            is_admin: rws[0].is_admin,
+                            firstname: rws[0].firstname,
+                            lastname: rws[0].lastname,
+                            sex: rws[0].sex
+                        };
+                        res.status(200).send(usr);
+                    } else {
+                        res.status(404).send(null);
+                    }
+                });
+            } else {
+                res.status(404).send("0");
             }
         });
     } catch (err) {
         next(err);
     }
 });
+
 
 
 
