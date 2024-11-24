@@ -1,10 +1,11 @@
 <div class="container">
-  <!-- Log Out Button in the top right corner -->
-  <button class="logout-button" (click)="logout()">Log Out</button>
+  <nav class="navbar">
+    <div class="navbar-title">Zeitausgleich</div>
+    <button class="logout-button" (click)="logout()">Log Out</button>
+  </nav>
 
-  <!-- Existing content for admin and employee views -->
-  <div class="child-container"*ngIf="isAdmin; else notAdmin">
-    <button (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
+  <div class="child-container" *ngIf="isAdmin; else notAdmin">
+    <button class="add-employee-button" (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
     <div class="admin-container">
       <div class="employee-container">
         <div class="employee" *ngFor="let employee of employees" (click)="navigateToDetail(employee.id)">

@@ -1,7 +1,35 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-bottom: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  z-index: 100;
+}
+
+.navbar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
 .logout-button {
-  position: absolute;
-  top: 20px;
-  right: 20px;
   padding: 10px 20px;
   background-color: #e74c3c;
   color: white;
@@ -16,19 +44,31 @@
   background-color: #c0392b;
 }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  min-height: 100vh;
-  /*background-color: #f9f9f9;*/
-  font-family: Arial, sans-serif;
+.add-employee-button {
+  margin: 20px 0;
+  padding: 12px 25px;
+  background-color: #A7D46C;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-employee-button:hover {
+  background-color: #92C257;
+  transform: translateY(-3px);
+}
+
+.add-employee-button:active {
+  transform: translateY(0);
 }
 
 .employee-container {
   display: flex;
-  flex-direction: column; /* flex-direction: row; geht auch was man halt visuell mehr präferiert */
+  flex-direction: column;
   gap: 15px;
   max-width: 400px;
   width: 100%;
@@ -46,24 +86,16 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-
-
-/*
-verweist auf alle h3 tags in denen sich employees befinden, sollten andere h3 elemente drinnen sein wird dieses css für die ignoriert
-  => zb wenn ich im employee div noch ein h3 element habe mit anderem content wird das css für diesen h3 tag nicht implementiert
-*/
 .employee h3 {
   color: #333;
   font-size: 1.25rem;
   font-weight: bold;
   margin: 0;
-  padding-top: 10px ;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f0f0f0; /* kann man für ästhetische zwecke lassen (grauer strich erscheint dann unterm namen von der person */
-  transition: color 0.3s ease;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+  transition: color 0.3s ease;^
 }
 
-/* das die boxen sich bewegen wenn man drüberhovert */
 .employee:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
@@ -76,5 +108,18 @@ verweist auf alle h3 tags in denen sich employees befinden, sollten andere h3 el
 @media (max-width: 768px) {
   .employee {
     max-width: 100%;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .navbar-title {
+    margin-bottom: 10px;
+  }
+
+  .logout-button {
+    align-self: flex-end;
   }
 }
