@@ -30,3 +30,8 @@ END;
 //
 DELIMITER ;
 
+CREATE TABLE shift (
+ id INT(11) NOT NULL AUTO_INCREMENT
+);
+select * from user;
+
