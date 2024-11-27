@@ -30,3 +30,5 @@ END;
 //
 DELIMITER ;
 
+select * from user;
+

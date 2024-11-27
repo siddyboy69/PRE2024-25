@@ -15,7 +15,7 @@ export class HomepageComponent {
   employees: any[] = [];
   isAdmin: boolean = false;
 
-  constructor(private userService: UserService, private router: Router) {
+  constructor(protected userService: UserService, private router: Router) {
     this.isAdmin = this.userService.isAdmin();
     if (this.isAdmin) {
       this.fetchEmployee();

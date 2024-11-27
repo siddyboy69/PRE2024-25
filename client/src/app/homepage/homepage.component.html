@@ -4,6 +4,8 @@
     <button class="logout-button" (click)="logout()">Log Out</button>
   </nav>
 
+  <div class="willkommen"><h1 class="willkommen-header">Willkommen, {{this.userService.user.username}}! </h1></div>
+
   <div class="child-container" *ngIf="isAdmin; else notAdmin">
     <button class="add-employee-button" (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
     <div class="admin-container">
