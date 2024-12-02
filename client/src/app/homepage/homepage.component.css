@@ -133,3 +133,91 @@
     align-self: flex-end;
   }
 }
+
+.shift-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between button rows */
+  align-items: center;
+  margin-top: 20px; /* Add some top margin */
+}
+
+.shift-buttons-row {
+  display: flex;
+  gap: 20px; /* Space between buttons in a row */
+}
+
+.shift-button {
+  padding: 12px 25px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #007bff; /* Bootstrap primary blue */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.shift-button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+
+.shift-button:active {
+  transform: translateY(0); /* Return to original position when clicked */
+  background-color: #004085; /* Even darker blue when active */
+}
+
+.today-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 20px; /* Space between arrows and date */
+}
+
+.arrow-button {
+  background-color: #8e8e8e; /* Neutral gray background */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.arrow-button:hover {
+  background-color: #616161; /* Darker gray on hover */
+  transform: translateY(-2px); /* Slight lift effect */
+}
+
+.arrow-button:active {
+  transform: translateY(0); /* Return to original position when clicked */
+  background-color: #424242; /* Even darker gray when active */
+}
+
+.today-label {
+  font-size: 18px;
+  font-weight: bold;
+  min-width: 100px; /* Ensure consistent width */
+  text-align: center;
+}
+
+.status-text {
+  display: flex;
+  justify-content: center;
+  gap: 30px; /* Space between the text items */
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.status-item {
+  color: #333;
+  text-align: center;
+}

@@ -186,6 +186,10 @@ userRouter.delete('/delete/:id', verifyToken, (req, res, next) => {
     });
 });
 
+
+
+
+
 // Get user details by ID without sending password (protected)
 userRouter.get("/:id", verifyToken, (req, res, next) => {
     const userId = req.params.id;

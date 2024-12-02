@@ -17,6 +17,27 @@
     </div>
   </div>
   <ng-template #notAdmin>
-    <p>No content available.</p>
+    <div class="today-container">
+      <button class="arrow-button left-arrow" (click)="changeDate(-1)">&#8592;</button>
+      <span class="today-label">{{ displayDate }}</span>
+      <button class="arrow-button right-arrow" (click)="changeDate(1)">&#8594;</button>
+    </div>
+
+    <div class="shift-container">
+      <div class="shift-buttons-row">
+        <button class="shift-button">Schicht beginnen</button>
+        <button class="shift-button">Schicht beenden</button>
+      </div>
+      <div class="shift-buttons-row">
+        <button class="shift-button">Pause beginnen</button>
+        <button class="shift-button">Pause beenden</button>
+      </div>
+    </div>
+
+    <div class="status-text">
+      <span class="status-item">In</span>
+      <span class="status-item">Out</span>
+      <span class="status-item">Total</span>
+    </div>
   </ng-template>
 </div>
