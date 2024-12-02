@@ -1,6 +1,6 @@
-i am making a full stack web application. 
+I am building a full-stack web application using Express and Angular. I want to share the current state of my project with you so that you have all the relevant context about its setup, structure, and features. After every message I send, respond by saying, ‘I understand,’ followed by feedback on what has been developed well so far. When I say ‘help,’ you’ll activate and give detailed guidance on the changes I need to make, specifying files or code sections as needed. If I don’t say ‘help,’ simply acknowledge with ‘I understand’ and your feedback.
 
-in webstorm the first Thing i did was in docker i started my mariadb script. then i created a new mysql script that Looks like this: 
+the first Thing i did was in docker i started my mariadb. then i created a new mysql script that Looks like this: 
 
     DROP DATABASE IF EXISTS Zeitausgleich;
     CREATE DATABASE Zeitausgleich;
@@ -33,24 +33,6 @@ BEGIN
 END;
 //
 DELIMITER ;
-
--- Insert the single allowed admin
-INSERT INTO user
-	(id, username, password,is_admin, firstname, lastname, sex)
-VALUES	
-	(1, 'admin', 'admin',1, 'Admine', 'Adminsdorfer', 'F');
-
-INSERT INTO user
-	(id, username, password,is_admin, firstname, lastname, sex)
-VALUES	
-	(2, 'KHA210564', 'Donnerstag01',0, 'Siddhanta', 'Khadka', 'M');
-
-INSERT INTO user
-	(id, username, password,is_admin, firstname, lastname, sex)
-VALUES
-	(3, 'GAG210648', '1234', 0, 'Tobias', 'Gagulic', 'M');
-
-
 
 then what i did is in webstorm i went to file -> new -> Project and then selected node.js Project. 
 
@@ -448,38 +430,105 @@ userRouter.delete('/delete/:id', (req, res, next) => {
 });
 
 the last file is called app.ts: 
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { userRouter } from './routes/user-routes';
-
 
 const app = express();
 const port: number = 3000;
 const origin: string = 'http://localhost:4200';
 
+// Middleware to parse JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-    origin: origin,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// CORS setup to allow requests from specific origin
+app.use(
+    cors({
+        origin: origin,
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    })
+);
 
+// Prevent caching of responses to enhance security
+app.use((req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
+
+// Define routes
 app.use('/users', userRouter);
 
-function errorHandler(err: any, req: any, res: any, next: any) {
+// Global error handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
         return next(err);
     }
-    console.error(err);
+    console.error('Error:', err);
     res.status(500).send('Something broke! ' + err);
-}
-app.use(errorHandler);
-
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
 });
+
+// Start server
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
+
+export default app;
+
+
+the app.js: 
+"use strict";
+require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const { userRouter } = require("./routes/user-routes");
+
+const app = express();
+const port = 3000;
+const origin = "http://localhost:4200"; // Your frontend's origin
+
+// Middleware to parse JSON and URL-encoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// CORS setup to allow requests from specific origin
+app.use(cors({
+    origin: origin,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Prevent caching of responses to enhance security
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+});
+
+// Define routes
+app.use("/users", userRouter);
+
+// Global error handler
+app.use((err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+    console.error("Error:", err);
+    res.status(500).send("Something broke! " + err);
+});
+
+// Start server
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+});
+
+module.exports = app;
 
 
 i tested all requests on postman and they all work. 
@@ -846,13 +895,13 @@ Login.component.html:
     <h1>Login</h1>
     <form (ngSubmit)="login()" #loginForm="ngForm">
       <div class="form-group">
-        <input matInput placeholder="Username" name="username" [(ngModel)]="username" required>
+        <input matInput placeholder="Username" name="username" [(ngModel)]="username" (ngModelChange)="onInputChange()" required autocomplete="off">
       </div>
       <div class="form-group">
-        <input matInput type="password" placeholder="Password" name="password" [(ngModel)]="password" required>
+        <input matInput type="password" placeholder="Password" name="password" [(ngModel)]="password" (ngModelChange)="onInputChange()" required autocomplete="off">
       </div>
       <div class="form-group">
-        <button mat-raised-button type="submit" [disabled]="loginForm.invalid">Login</button>
+        <button mat-raised-button type="submit" [disabled]="isButtonDisabled">Login</button>
       </div>
       <div class="error-message">
         {{ errorMessage }}
@@ -861,8 +910,9 @@ Login.component.html:
   </div>
 </div>
 
+
 Login.component.ts: 
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../_service/user.service';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -876,23 +926,34 @@ import { Location } from '@angular/common';
   imports: [FormsModule, RouterLink, CommonModule],
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit {
   username: string = '';
   password: string = '';
   errorMessage: string = '';
+  isButtonDisabled: boolean = true; // Initially disable the button
 
   constructor(private userService: UserService, private router: Router, private location: Location) {}
 
+  ngOnInit(): void {
+    // Retrieve and set stored username and password (if they exist)
+    this.username = localStorage.getItem('last_username') || '';
+    this.password = localStorage.getItem('last_password') || '';
+
+    // Disable the button if username and password are pre-filled
+    this.isButtonDisabled = !!(this.username && this.password);
+  }
+
+  // Method to handle login
   login(): void {
     this.userService.login(this.username, this.password).subscribe({
       next: (user: any) => {
         console.log('Login successful:', user);
         this.errorMessage = ''; // Clear any existing error message
+        const redirectUrl = user.isAdmin ? '/homepage' : '/homepage';
 
-        const redirectUrl = user.isAdmin ? '/homepage' : '/homepage'; // Redirect both to the same route for simplicity
-        localStorage.removeItem('redirectUrl');
+        // Navigate to the redirect URL and replace the login URL in the history
         this.router.navigate([redirectUrl]).then(() => {
-          this.location.replaceState(''); // Clear the login page from browser history
+          this.location.replaceState('/homepage');
         });
       },
       error: (err: any) => {
@@ -902,8 +963,9 @@ export class LoginComponent implements OnInit{
     });
   }
 
-
-  ngOnInit(): void {
+  // Method to enable the button if both fields have values
+  onInputChange(): void {
+    this.isButtonDisabled = !(this.username && this.password); // Enable button if both fields are filled
   }
 }
 

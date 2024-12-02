@@ -8,7 +8,6 @@ const jwt = require("jsonwebtoken");
 const userRouter = express.Router();
 exports.userRouter = userRouter;
 
-// Secret key for JWT (in production, store in environment variables)
 const JWT_SECRET = process.env.JWT_SECRET;
 
 
@@ -153,19 +152,37 @@ userRouter.put("/update/", verifyToken, (req, res, next) => {
 });
 
 // Delete user by ID (protected)
-userRouter.delete("/delete/:id", verifyToken, (req, res, next) => {
+userRouter.delete('/delete/:id', verifyToken, (req, res, next) => {
     const userId = req.params.id;
-    let sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
-    pool.query(sql, (err, result) => {
-        if (err) {
-            console.log(err);
-            return next(err);
+    console.log("Attempting to delete user with ID:", userId);
+
+    // First, check if the user exists
+    pool.query('SELECT * FROM user WHERE id = ?', [userId], (checkErr, checkResult) => {
+        if (checkErr) {
+            console.error("Error checking user:", checkErr);
+            return res.status(500).send("Server error");
         }
-        if (result.affectedRows > 0) {
-            res.status(200).send(`User with ID ${userId} deleted successfully.`);
-        } else {
-            res.status(404).send(`User with ID ${userId} not found.`);
+
+        if (checkResult.length === 0) {
+            console.log(`No user found with ID ${userId}`);
+            return res.status(404).send(`User with ID ${userId} not found.`);
         }
+
+        // If user exists, proceed with deletion
+        let sql = "DELETE FROM user WHERE id = ?";
+        pool.query(sql, [userId], (err, result) => {
+            if (err) {
+                console.error("Delete error:", err);
+                return res.status(500).send("Error deleting user");
+            }
+
+            console.log("Delete result:", result);
+            if (result.affectedRows > 0) {
+                res.status(200).send(`User with ID ${userId} deleted successfully.`);
+            } else {
+                res.status(404).send(`User with ID ${userId} not found.`);
+            }
+        });
     });
 });
 

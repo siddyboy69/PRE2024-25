@@ -14,9 +14,10 @@ export const userGuard: CanActivateFn = (): boolean | UrlTree => {
     userService.user = userService.loadUserFromLocalStorage();
   }
 
-  if (!userService.isLoggedIn()) {
+  // Verify token presence
+  if (!userService.isLoggedIn() || !localStorage.getItem('auth_token')) {
     messageService.addMessage('You need to log in to access this page.');
-    return router.createUrlTree(['/']); // No replaceUrl to keep history intact
+    return router.createUrlTree(['/']); // Redirect to login page
   }
 
   return true;

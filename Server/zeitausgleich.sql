@@ -30,8 +30,16 @@ END;
 //
 DELIMITER ;
 
+
 CREATE TABLE shift (
- id INT(11) NOT NULL AUTO_INCREMENT
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    user_id INT(11) NOT NULL,
+    shiftStart DATETIME NOT NULL,
+    shiftEnd DATETIME NOT NULL,
+    breakStart DATETIME,
+    breakEnd DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
-select * from user;
+
 

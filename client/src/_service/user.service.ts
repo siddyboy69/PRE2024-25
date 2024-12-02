@@ -10,6 +10,7 @@ import { MessageService } from './message.service';
 })
 export class UserService {
   user: User = this.loadUserFromLocalStorage();
+  private apiUrl = 'http://localhost:3000';  // Base URL for your backend API
 
   constructor(private http: HttpClient, private msg: MessageService) {}
 
@@ -25,36 +26,49 @@ export class UserService {
 
   // Handle user login, storing both user data and JWT token in local storage on success
   login(username: string, password: string): Observable<any> {
-    return this.http.post<any>('http://localhost:3000/users/login', {
+    return this.http.post<any>(`${this.apiUrl}/users/login`, {
       username: username,
       password: password
     }).pipe(
       tap(response => {
+        // Display a success message
         this.msg.addMessage('Login successful');
-        this.user = response.user; // Store user data
-        this.saveUserToLocalStorage(this.user); // Save user to local storage
-        localStorage.setItem('auth_token', response.token); // Store JWT token
+
+        // Store user data and JWT token
+        this.user = response.user;
+        this.saveUserToLocalStorage(this.user);
+        localStorage.setItem('auth_token', response.token);
+
+        // Temporarily store the last used username and password
+        localStorage.setItem('last_username', username);
+        localStorage.setItem('last_password', password);
       }),
       catchError(_ => {
+        // Display a failure message on login error
         this.msg.addMessage('Login failed');
         return of(null); // Return null observable on error
       })
     );
   }
 
-  // Register a new user and store user data in local storage on success
+  // Register method for creating a new user
   register(username: string, password: string, email: string, firstName: string, lastName: string, sex: string, address: string, postalcode: string, city: string, country: string): Observable<User> {
-    return this.http.post<User>('http://localhost:3000/users/register', {
+    return this.http.post<User>(`${this.apiUrl}/users/register`, {
       username: username,
       password: password,
       firstname: firstName,
       lastname: lastName,
-      sex: sex
+      sex: sex,
+      email: email,
+      address: address,
+      postalcode: postalcode,
+      city: city,
+      country: country
     }).pipe(
       tap(res => {
         this.msg.addMessage('Register successful');
-        this.user = res;
-        this.saveUserToLocalStorage(this.user); // Save user to local storage
+        // Avoid changing the current user (admin).
+        console.log('New user created: ', res);
       }),
       catchError(_ => {
         this.msg.addMessage('Register failed');
@@ -65,7 +79,7 @@ export class UserService {
 
   // Fetch all non-admin users from the backend
   getUsers(): Observable<any> {
-    return this.http.get<any>('http://localhost:3000/users', { headers: this.getAuthHeaders() }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/users`, { headers: this.getAuthHeaders() }).pipe(
       tap(res => {
         console.log('Users fetched:', res);
       }),
@@ -82,7 +96,7 @@ export class UserService {
 
   // Fetch user details by ID, ensuring it returns an Observable<User>
   getUserById(id: number): Observable<User> {
-    return this.http.get<any>(`http://localhost:3000/users/${id}`, { headers: this.getAuthHeaders() }).pipe(
+    return this.http.get<any>(`${this.apiUrl}/users/${id}`, { headers: this.getAuthHeaders() }).pipe(
       map(employeeData => new User(
         employeeData.id,
         employeeData.uuid,
@@ -109,6 +123,9 @@ export class UserService {
     localStorage.removeItem('loggedInUser'); // Clear user data from local storage
     localStorage.removeItem('auth_token'); // Clear the JWT token from local storage
     this.msg.addMessage('Logout successful'); // Optionally add a logout message
+
+    // Refresh the page to clear cached data and inputs
+    window.location.href = '/';
   }
 
   // Save user data to local storage
@@ -128,5 +145,16 @@ export class UserService {
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
+  }
+
+  // Delete a user by ID
+  deleteUser(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/users/delete/${id}`, { headers: this.getAuthHeaders() }).pipe(
+      catchError(err => {
+        this.msg.addMessage('Error deleting user');
+        console.error('Error deleting user:', err);
+        return of(null);
+      })
+    );
   }
 }

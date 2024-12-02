@@ -62,9 +62,12 @@ button[mat-raised-button]:hover {
 }
 
 button[mat-raised-button]:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
+  background-color: #ddd !important; /* Ensures the background is grey */
+  color: #999 !important; /* Changes text color to a muted grey */
+  cursor: not-allowed !important; /* Shows 'not-allowed' cursor on hover */
+  box-shadow: none !important; /* Removes any shadow to give a flat appearance */
 }
+
 
 .error-message {
   color: #e74c3c;
