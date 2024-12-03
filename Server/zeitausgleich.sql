@@ -51,7 +51,6 @@ END;
 //
 DELIMITER ;
 
-/* inserts */
 INSERT INTO user (uuid, username, password, is_admin, firstname, lastname, sex)
 VALUES
 (UUID(), 'employee1', 'hashed_password', 0, 'John', 'Doe', 'M'),
@@ -62,5 +61,5 @@ VALUES
 (1, '2023-12-01 09:00:00', '2023-12-01 17:00:00', '2023-12-01 12:00:00', '2023-12-01 12:30:00'),
 (2, '2023-12-01 08:30:00', '2023-12-01 16:30:00', '2023-12-01 12:00:00', '2023-12-01 12:45:00');
 
-/* use cases / selects */
+
 SELECT u.firstname, u.lastname, s.shiftStart, s.shiftEnd FROM user u JOIN shift s ON u.id = s.user_id;
