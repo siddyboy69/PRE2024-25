@@ -2,11 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../_service/user.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css']
 })
@@ -15,59 +17,61 @@ export class HomepageComponent implements OnInit {
   isAdmin: boolean = false;
   currentDate: Date = new Date(); // Initialize currentDate as today's date
   displayDate: string = 'Heute';
+  selectedEmployeeId: number | null = null;
+  shifts: any[] = [];
+  //shifts: Object = [];
+  newShift: any = {
+    shiftStart: '',
+    shiftEnd: '',
+    breakStart: '',
+    breakEnd: ''
+  };
 
   constructor(
     protected userService: UserService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {
     this.isAdmin = this.userService.isAdmin();
     if (this.isAdmin) {
-      this.fetchEmployee();
+      this.fetchEmployees();
     }
   }
 
   ngOnInit(): void {
-    // Update display date when component initializes
     this.updateDisplayDate();
   }
 
-  // Fetch employees if the user is an admin
-  fetchEmployee(): void {
+  fetchEmployees(): void {
     this.userService.getUsers().subscribe({
-      next: (employees: any[]) => {
-        console.log('Fetched employees:', employees);
-        this.employees = employees;
-      },
-      error: err => console.error('Error fetching employees:', err)
+      next: (employees) => (this.employees = employees),
+      error: (err) => console.error('Error fetching employees:', err)
     });
   }
 
-  // Method to navigate to "Add Mitarbeiter"
   navigateToAddMitarbeiter(): void {
     this.router.navigate(['/add-mitarbeiter']);
   }
 
   // Method to navigate to employee details page
   navigateToDetail(id: number): void {
+    this.selectedEmployeeId = id;
     this.router.navigate(['/mitarbeiter-detail', id]);
   }
 
-  // Log Out Method
   logout(): void {
-    this.userService.logout(); // Clear session
-    this.router.navigate(['/']); // Redirect to login page
+    this.userService.logout();
+    this.router.navigate(['/']);
   }
 
-  // Method to change the date (yesterday or tomorrow)
+
+
   changeDate(direction: number): void {
-    // Create a new Date object to avoid mutating the original
     const newDate = new Date(this.currentDate);
     newDate.setDate(newDate.getDate() + direction);
 
-    // Update the current date
     this.currentDate = newDate;
 
-    // Update the display
     this.updateDisplayDate();
   }
 
@@ -99,4 +103,57 @@ export class HomepageComponent implements OnInit {
       year: 'numeric'
     });
   }
+
+  searchEmployee(event: Event): void {
+    const query = (event.target as HTMLInputElement).value.toLowerCase();
+    this.employees = this.employees.filter((employee) =>
+      `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(query)
+    );
+  }
+
+  fetchShifts(employeeId: number): void {
+    this.http.get<any[]>(`http://localhost:3000/users/shifts/${employeeId}`).subscribe({
+      /*next: (shifts) => (this.shifts = shifts),
+      error: (err) => console.error('Error fetching shifts:', err)*/
+
+      next: (shifts) => (this.shifts = shifts),
+      error: (err) => console.error('Error fetching shifts:', err)
+    });
+  }
+
+  onEmployeeClick(employeeId: number): void {
+    this.selectedEmployeeId = employeeId;
+    this.fetchShifts(employeeId);
+  }
+
+  addShift(newShift: any): void {
+    this.http.post('http://localhost:3000/users/shifts', newShift).subscribe({
+      next: () => {
+        if (this.selectedEmployeeId) {
+          this.fetchShifts(this.selectedEmployeeId);
+        }
+      },
+      error: (err) => console.error('Error adding shift:', err)
+    });
+  }
+
+  generateReport(): void {
+    console.log('Report generation triggered.');
+    this.http.get('http://localhost:3000/users/generate-report', {
+      responseType: 'blob' // Expect a binary file (PDF)
+    }).subscribe({
+      next: (response: Blob) => {
+        const url = window.URL.createObjectURL(response);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'work-hours-report.pdf';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error generating report:', err);
+      }
+    });
+  }
+
 }

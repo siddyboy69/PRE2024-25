@@ -68,7 +68,7 @@ shiftRouter.get('/:userId', (req, res, next) => {
 
             return new Shift(
                 row.id,
-                user,
+                user.id,
                 row.shiftStart,
                 row.shiftEnd,
                 row.breakStart,

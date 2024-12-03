@@ -157,4 +157,33 @@ userRouter.get('/:id', (req, res, next) => {
             res.status(404).send({ message: 'User not found' });
         }
     });
+
+    // test
+    userRouter.get('/shifts/:userId', (req, res, next) => {
+        const userId = req.params.userId;
+        const query = `
+        SELECT id, shiftStart, shiftEnd, breakStart, breakEnd
+        FROM shift
+        WHERE user_id = ?;
+    `;
+        pool.query(query, [userId], (err, rows) => {
+            if (err) return next(err);
+            res.status(200).send(rows);
+        });
+    });
+
+    userRouter.post('/shifts', (req, res, next) => {
+        const { userId, shiftStart, shiftEnd, breakStart, breakEnd } = req.body;
+        const query = `
+        INSERT INTO shift (user_id, shiftStart, shiftEnd, breakStart, breakEnd)
+        VALUES (?, ?, ?, ?, ?);
+    `;
+        pool.query(query, [userId, shiftStart, shiftEnd, breakStart, breakEnd], (err, result) => {
+            if (err) return next(err);
+            res.status(200).send({ message: 'Shift added successfully.', id: result.insertId });
+        });
+    });
+
+
+
 });

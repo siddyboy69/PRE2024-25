@@ -1,12 +1,24 @@
-import {User} from "./user";
-export class Shift{
+export class Shift {
+    id: number;
+    userId: number;
+    shiftStart: Date;
+    shiftEnd: Date;
+    breakStart?: Date; // Optional
+    breakEnd?: Date;   // Optional
+
     constructor(
-        public id: number =-1,
-        public user: User = new User(),
-        public shiftStart: Date = new Date(Date.now()),
-        public shiftEnd: Date = new Date(Date.now()),
-        public breakStart: Date = new Date(Date.now()),
-        public breakEnd: Date = new Date(Date.now())
+        id: number,
+        userId: number,
+        shiftStart: Date,
+        shiftEnd: Date,
+        breakStart?: Date,
+        breakEnd?: Date
     ) {
+        this.id = id;
+        this.userId = userId;
+        this.shiftStart = shiftStart;
+        this.shiftEnd = shiftEnd;
+        this.breakStart = breakStart;
+        this.breakEnd = breakEnd;
     }
 }
