@@ -38,26 +38,4 @@ export class MitarbeiterDetailComponent implements OnInit  {
       error: (err) => console.error('Error fetching employee:', err)
     });
   }
-
-  deleteEmployee(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-
-    if (id) {
-      this.userService.deleteUser(id).subscribe({
-        next: (response) => {
-          console.log('Employee deleted:', response);
-          this.msg.addMessage('Employee deleted successfully');
-          // Use navigateByUrl for more reliable navigation
-          this.router.navigateByUrl('/homepage');
-        },
-        error: (err) => {
-          console.error('Error deleting employee:', err);
-          this.msg.addMessage('Error deleting employee');
-        }
-      });
-    } else {
-      console.error('No employee ID found');
-      this.msg.addMessage('No employee ID found');
-    }
-  }
 }

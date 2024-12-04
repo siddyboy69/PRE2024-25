@@ -3,7 +3,22 @@ import { UserService } from '../../_service/user.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import {FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { Trash2 } from 'lucide-react';
+import {MessageService} from '../../_service/message.service';
+interface Employee {
+  id: number;
+  firstName: string;
+  lastName: string;
+  isAdmin: boolean;
+}
+
+interface Shift {
+  shiftStart: string;
+  shiftEnd: string;
+  breakStart?: string;
+  breakEnd?: string;
+}
 
 @Component({
   selector: 'app-homepage',
@@ -13,14 +28,15 @@ import {FormsModule} from '@angular/forms';
   styleUrls: ['./homepage.component.css']
 })
 export class HomepageComponent implements OnInit {
-  employees: any[] = [];
+  employees: Employee[] = [];
   isAdmin: boolean = false;
-  currentDate: Date = new Date(); // Initialize currentDate as today's date
+  currentDate: Date = new Date();
   displayDate: string = 'Heute';
   selectedEmployeeId: number | null = null;
-  shifts: any[] = [];
-  //shifts: Object = [];
-  newShift: any = {
+  shifts: Shift[] = [];
+  isSidebarOpen: boolean = false;
+
+  newShift: Shift = {
     shiftStart: '',
     shiftEnd: '',
     breakStart: '',
@@ -30,7 +46,8 @@ export class HomepageComponent implements OnInit {
   constructor(
     protected userService: UserService,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private msg: MessageService
   ) {
     this.isAdmin = this.userService.isAdmin();
     if (this.isAdmin) {
@@ -40,6 +57,41 @@ export class HomepageComponent implements OnInit {
 
   ngOnInit(): void {
     this.updateDisplayDate();
+  }
+  deleteEmployee(employeeId: number, event: Event): void {
+    event.stopPropagation(); // Prevent triggering other click events
+
+    // Confirmation dialog in German
+    const confirmDelete = confirm('Sind Sie sicher, dass Sie diesen Mitarbeiter löschen möchten?');
+
+    if (confirmDelete) {
+      if (employeeId) {
+        this.userService.deleteUser(employeeId).subscribe({
+          next: (response) => {
+            console.log('Employee deleted:', response);
+            this.msg.addMessage('Mitarbeiter erfolgreich gelöscht');
+
+            // Remove the employee from the local list
+            this.employees = this.employees.filter(emp => emp.id !== employeeId);
+
+            // If the deleted employee was the selected one, reset selection
+            if (this.selectedEmployeeId === employeeId) {
+              this.selectedEmployeeId = null;
+            }
+          },
+          error: (err) => {
+            console.error('Error deleting employee:', err);
+            this.msg.addMessage('Fehler beim Löschen des Mitarbeiters');
+          }
+        });
+      } else {
+        console.error('Keine Mitarbeiter-ID gefunden');
+        this.msg.addMessage('Keine Mitarbeiter-ID gefunden');
+      }
+    }
+  }
+  toggleSidebar(): void {
+    this.isSidebarOpen = !this.isSidebarOpen;
   }
 
   fetchEmployees(): void {
@@ -53,7 +105,6 @@ export class HomepageComponent implements OnInit {
     this.router.navigate(['/add-mitarbeiter']);
   }
 
-  // Method to navigate to employee details page
   navigateToDetail(id: number): void {
     this.selectedEmployeeId = id;
     this.router.navigate(['/mitarbeiter-detail', id]);
@@ -64,38 +115,26 @@ export class HomepageComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
-
-
   changeDate(direction: number): void {
     const newDate = new Date(this.currentDate);
     newDate.setDate(newDate.getDate() + direction);
-
     this.currentDate = newDate;
-
     this.updateDisplayDate();
   }
 
-  // Method to update the display date
   private updateDisplayDate(): void {
     const today = new Date();
-
-    // If the current date is today, display 'Heute'
-    if (this.isSameDay(this.currentDate, today)) {
-      this.displayDate = 'Heute';
-    } else {
-      // Otherwise, format the date
-      this.displayDate = this.formatDate(this.currentDate);
-    }
+    this.displayDate = this.isSameDay(this.currentDate, today)
+      ? 'Heute'
+      : this.formatDate(this.currentDate);
   }
 
-  // Helper method to check if two dates are the same day
   private isSameDay(date1: Date, date2: Date): boolean {
     return date1.getFullYear() === date2.getFullYear() &&
       date1.getMonth() === date2.getMonth() &&
       date1.getDate() === date2.getDate();
   }
 
-  // Helper method to format the date
   private formatDate(date: Date): string {
     return date.toLocaleDateString('de-DE', {
       day: '2-digit',
@@ -112,10 +151,7 @@ export class HomepageComponent implements OnInit {
   }
 
   fetchShifts(employeeId: number): void {
-    this.http.get<any[]>(`http://localhost:3000/users/shifts/${employeeId}`).subscribe({
-      /*next: (shifts) => (this.shifts = shifts),
-      error: (err) => console.error('Error fetching shifts:', err)*/
-
+    this.http.get<Shift[]>(`http://localhost:3000/users/shifts/${employeeId}`).subscribe({
       next: (shifts) => (this.shifts = shifts),
       error: (err) => console.error('Error fetching shifts:', err)
     });
@@ -123,10 +159,16 @@ export class HomepageComponent implements OnInit {
 
   onEmployeeClick(employeeId: number): void {
     this.selectedEmployeeId = employeeId;
+
+    // Fetch shifts first
     this.fetchShifts(employeeId);
+
+    // Navigate to the employee details page
+    this.router.navigate(['/mitarbeiter-detail', employeeId]);
   }
 
-  addShift(newShift: any): void {
+
+  addShift(newShift: Shift): void {
     this.http.post('http://localhost:3000/users/shifts', newShift).subscribe({
       next: () => {
         if (this.selectedEmployeeId) {
@@ -138,9 +180,8 @@ export class HomepageComponent implements OnInit {
   }
 
   generateReport(): void {
-    console.log('Report generation triggered.');
     this.http.get('http://localhost:3000/users/generate-report', {
-      responseType: 'blob' // Expect a binary file (PDF)
+      responseType: 'blob'
     }).subscribe({
       next: (response: Blob) => {
         const url = window.URL.createObjectURL(response);
@@ -155,5 +196,4 @@ export class HomepageComponent implements OnInit {
       }
     });
   }
-
 }
