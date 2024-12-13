@@ -1,70 +1,77 @@
-/* General Layout */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f7f9;
+  color: #333;
+  line-height: 1.6;
+}
+
 .container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  font-family: Arial, sans-serif;
-  background-color: #f7f9fc;
-  color: #333;
-  box-sizing: border-box;
-  overflow-x: hidden; /* Prevent horizontal scrollbars */
+  overflow-x: hidden;
 }
 
-/* Navbar */
+/* Navbar Styles */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
+  padding: 15px 20px;
   background-color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
 }
 
 .navbar-menu-toggle {
   cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 
 .hamburger-icon {
   font-size: 1.5rem;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.hamburger-icon:hover {
+  color: #007bff;
 }
 
 .navbar-title {
-  flex-grow: 1;
-  text-align: center;
   font-size: 1.5rem;
   font-weight: bold;
+  color: #007bff;
+  flex-grow: 1;
+  text-align: center;
 }
 
-.search-container {
+.navbar-actions {
   display: flex;
   align-items: center;
-  flex-grow: 1;
-  margin-right: 20px;
-}
-
-.search-bar {
-  flex-grow: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px 0 0 4px;
-  font-size: 1rem;
 }
 
 .logout-button {
-  padding: 8px 16px;
-  background-color: #ff4d4d;
-  color: #fff;
+  background-color: #dc3545;
+  color: white;
   border: none;
-  border-radius: 0 4px 4px 0;
+  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
 .logout-button:hover {
-  background-color: #ff3333;
+  background-color: #c82333;
 }
 
 /* Content Wrapper */
@@ -73,17 +80,56 @@
   flex-grow: 1;
 }
 
-/* Sidebar */
+/* Sidebar Styles */
 .sidebar {
-  width: 250px;
-  background-color: #f7f7f7;
-  border-right: 1px solid #ddd;
-  padding: 20px;
-  display: none;
+  width: 0;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  overflow-x: hidden;
+  transition: 0.3s width;
+  z-index: 90;
 }
 
 .sidebar-open {
-  display: block;
+  width: 250px;
+}
+
+.sidebar-search {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.add-icon {
+  cursor: pointer;
+  color: #007bff;
+  transition: color 0.3s ease;
+}
+
+.add-icon:hover {
+  color: #0056b3;
 }
 
 .user-list {
@@ -92,133 +138,152 @@
 }
 
 .user-list li {
-  padding: 10px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .user-list li:hover,
 .user-list li.active {
-  background-color: #007bff;
-  color: #fff;
+  background-color: #f1f3f5;
+}
+
+.delete-icon {
+  color: #dc3545;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.delete-icon:hover {
+  color: #a71d2a;
 }
 
 /* Main Content */
 .content {
-  flex: 1;
+  flex-grow: 1;
   padding: 20px;
+  background-color: #f4f7f9;
 }
 
 .welcome h1 {
-  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
 }
 
 .admin-dashboard,
-.employee-shifts {
+.employee-shifts,
+.employee-shifts-details,
+.add-shift {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Date Navigation Styles */
+.date-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-.add-employee-button,
-.shift-button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: #fff;
+.date-navigation .nav-button {
+  background-color: transparent;
   border: none;
-  border-radius: 4px;
+  font-size: 1.5rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  color: #007bff;
+  transition: color 0.3s ease;
 }
 
-.add-employee-button:hover,
-.shift-button:hover {
+.date-navigation .nav-button:hover {
+  color: #0056b3;
+}
+
+.date-navigation h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.admin-action-button,
+.shift-button,
+.submit-button,
+.nav-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.admin-action-button:hover,
+.shift-button:hover,
+.submit-button:hover,
+.nav-button:hover {
   background-color: #0056b3;
 }
 
-/* Add Shift Form */
-.add-shift form {
+.shift-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+
+
+.add-shift .form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.add-shift label {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
 }
 
 .add-shift input {
-  padding: 8px;
-  border: 1px solid #ddd;
+  padding: 10px;
+  border: 1px solid #ced4da;
   border-radius: 4px;
-}
-
-.add-shift button {
-  padding: 8px 16px;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.add-shift button:hover {
-  background-color: #0056b3;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .navbar {
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
-
-  .search-container {
-    margin-top: 10px;
-    width: 100%;
+  .content-wrapper {
+    flex-direction: column;
   }
 
   .sidebar {
-    display: none;
+    width: 100%;
     position: absolute;
     top: 60px;
-    left: 0;
     height: calc(100vh - 60px);
-    z-index: 20;
   }
 
   .sidebar-open {
-    display: block;
+    width: 100%;
   }
-}
-.user-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  cursor: pointer;
-}
 
-.delete-icon {
-  cursor: pointer;
-  color: #ff4d4d;
-  transition: color 0.3s;
-}
+  .add-shift .form-grid {
+    grid-template-columns: 1fr;
+  }
 
-.delete-icon:hover {
-  color: #ff3333;
-}
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
+  .date-navigation {
+    flex-direction: column;
+  }
 
-.add-icon {
-  cursor: pointer;
-  font-size: 1.2rem;
-  color: #007bff;
-  transition: color 0.3s;
-}
-
-.add-icon:hover {
-  color: #0056b3;
+  .date-navigation .nav-button {
+    margin: 10px 0;
+  }
 }

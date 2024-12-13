@@ -4,19 +4,21 @@
       <span class="hamburger-icon">&#9776;</span>
     </div>
     <div class="navbar-title">Zeitausgleich</div>
-    <div class="search-container">
-      <input
-        type="text"
-        class="search-bar"
-        placeholder="Search employees..."
-        (input)="searchEmployee($event)"
-      />
-      <button class="logout-button" (click)="logout()">Log Out</button>
+    <div class="navbar-actions">
+      <button class="logout-button" (click)="logout()">Abmelden</button>
     </div>
   </nav>
 
   <div class="content-wrapper">
     <aside class="sidebar" [class.sidebar-open]="isSidebarOpen">
+      <div class="sidebar-search">
+        <input
+          type="text"
+          class="search-bar"
+          placeholder="Mitarbeiter suchen..."
+          (input)="searchEmployee($event)"
+        />
+      </div>
       <div class="sidebar-header">
         <h2>Mitarbeiter</h2>
         <span
@@ -24,7 +26,7 @@
           class="add-icon"
           (click)="navigateToAddMitarbeiter()"
         >
-        ➕
+          ➕
         </span>
       </div>
       <ul class="user-list">
@@ -33,14 +35,16 @@
           (click)="onEmployeeClick(employee.id)"
           [class.active]="employee.id === selectedEmployeeId"
         >
-          <span class="user-name">{{ employee.firstName + ' ' + employee.lastName }}</span>
+          <span class="user-name">
+            {{ employee.firstName + ' ' + employee.lastName }}
+          </span>
           <span
             *ngIf="isAdmin && isSidebarOpen"
             class="delete-icon"
             (click)="deleteEmployee(employee.id, $event)"
           >
-    🗑️
-  </span>
+            🗑️
+          </span>
         </li>
       </ul>
     </aside>
@@ -52,44 +56,48 @@
 
       <section *ngIf="isAdmin" class="admin-dashboard">
         <h2>Manager Dashboard</h2>
-        <button class="add-employee-button" (click)="navigateToAddMitarbeiter()">Mitarbeiter hinzufügen</button>
+        <button class="admin-action-button" (click)="generateReport()">
+          Bericht generieren
+        </button>
         <p>Hier können Sie die Arbeitszeiten der Mitarbeiter verwalten und Berichte generieren.</p>
       </section>
 
       <section *ngIf="!isAdmin" class="employee-shifts">
-        <h2>Deine Schichten</h2>
-        <div class="shift-actions">
+        <div class="date-navigation">
+          <button class="nav-button nav-left" (click)="changeDate(-1)">←</button>
+          <h2>{{ displayDate }}</h2>
+          <button class="nav-button nav-right" (click)="changeDate(1)">→</button>
+        </div>
+
+        <div *ngIf="displayDate === 'Heute'" class="shift-actions">
           <button class="shift-button">Schicht beginnen</button>
           <button class="shift-button">Schicht beenden</button>
           <button class="shift-button">Pause beginnen</button>
           <button class="shift-button">Pause beenden</button>
         </div>
-        <div class="shift-status">
-          <span>In: 09:00</span>
-          <span>Out: 17:00</span>
-          <span>Total: 8h</span>
+
+        <div *ngIf="displayDate !== 'Heute'" class="no-shift-message">
+          <p>An diesem Tag sind keine aktiven Schichten verfügbar.</p>
         </div>
       </section>
 
       <section *ngIf="selectedEmployeeId" class="employee-shifts-details">
-        <h3>Shifts for Employee</h3>
-        <ul>
-          <li *ngFor="let shift of shifts">
-            <span>{{ shift.shiftStart | date: 'short' }} - {{ shift.shiftEnd | date: 'short' }}</span>
-            <span *ngIf="shift.breakStart">Break: {{ shift.breakStart | date: 'short' }} - {{ shift.breakEnd | date: 'short' }}</span>
-          </li>
-        </ul>
-      </section>
-
-      <section class="add-shift">
-        <h3>New Shift</h3>
-        <form (ngSubmit)="addShift(newShift)">
-          <input type="datetime-local" [(ngModel)]="newShift.shiftStart" name="shiftStart" required />
-          <input type="datetime-local" [(ngModel)]="newShift.shiftEnd" name="shiftEnd" required />
-          <input type="datetime-local" [(ngModel)]="newShift.breakStart" name="breakStart" />
-          <input type="datetime-local" [(ngModel)]="newShift.breakEnd" name="breakEnd" />
-          <button type="submit">Add Shift</button>
-        </form>
+        <h3>Schichten des Mitarbeiters</h3>
+        <div *ngIf="shifts.length > 0; else noShifts" class="shifts-list">
+          <div *ngFor="let shift of shifts" class="shift-item">
+            <div class="shift-time">
+              <span>Start: {{ shift.shiftStart | date:'medium' }}</span>
+              <span>Ende: {{ shift.shiftEnd | date:'medium' }}</span>
+            </div>
+            <div *ngIf="shift.breakStart" class="break-time">
+              <span>Pause Start: {{ shift.breakStart | date:'medium' }}</span>
+              <span>Pause Ende: {{ shift.breakEnd | date:'medium' }}</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #noShifts>
+          <p>Keine Schichten gefunden.</p>
+        </ng-template>
       </section>
     </main>
   </div>
