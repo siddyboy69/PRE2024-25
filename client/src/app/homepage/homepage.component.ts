@@ -146,10 +146,19 @@ export class HomepageComponent implements OnInit {
 
   searchEmployee(event: Event): void {
     const query = (event.target as HTMLInputElement).value.toLowerCase();
-    this.view_employees = {...this.employees}
     this.view_employees = this.employees.filter((employee) =>
       `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(query)
     );
+
+    // Add a check for empty results
+    if (this.view_employees.length === 0) {
+      this.view_employees = [{
+        id: -1, // Use a sentinel ID
+        firstName: 'Mitarbeiter',
+        lastName: 'nicht gefunden',
+        isAdmin: false
+      }];
+    }
   }
 
   fetchShifts(employeeId: number): void {

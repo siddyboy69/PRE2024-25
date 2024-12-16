@@ -32,19 +32,20 @@
       <ul class="user-list">
         <li
           *ngFor="let employee of view_employees"
-          (click)="onEmployeeClick(employee.id)"
+          [class.no-results]="employee.id === -1"
+          (click)="employee.id !== -1 && onEmployeeClick(employee.id)"
           [class.active]="employee.id === selectedEmployeeId"
         >
-          <span class="user-name">
-            {{ employee.firstName + ' ' + employee.lastName }}
-          </span>
+    <span class="user-name">
+      {{ employee.firstName + ' ' + employee.lastName }}
+    </span>
           <span
-            *ngIf="isAdmin && isSidebarOpen"
+            *ngIf="isAdmin && isSidebarOpen && employee.id !== -1"
             class="delete-icon"
             (click)="deleteEmployee(employee.id, $event)"
           >
-            🗑️
-          </span>
+      🗑️
+    </span>
         </li>
       </ul>
     </aside>

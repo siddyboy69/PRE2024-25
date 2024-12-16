@@ -299,3 +299,8 @@
     margin: 10px 0;
   }
 }
+.user-list .no-results {
+  color: #888;
+  text-align: center;
+  cursor: default;
+}
