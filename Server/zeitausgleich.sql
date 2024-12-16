@@ -48,7 +48,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Shift overlaps with an existing shift for this user.';
     END IF;
 END;
-//
+//	
 DELIMITER ;
 
 select * from user; 

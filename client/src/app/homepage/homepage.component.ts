@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { Trash2 } from 'lucide-react';
 import {MessageService} from '../../_service/message.service';
 interface Employee {
   id: number;
@@ -29,6 +28,7 @@ interface Shift {
 })
 export class HomepageComponent implements OnInit {
   employees: Employee[] = [];
+  view_employees: Employee[] = [];
   isAdmin: boolean = false;
   currentDate: Date = new Date();
   displayDate: string = 'Heute';
@@ -72,6 +72,7 @@ export class HomepageComponent implements OnInit {
             this.msg.addMessage('Mitarbeiter erfolgreich gelöscht');
 
             // Remove the employee from the local list
+            this.view_employees = this.employees.filter(emp => emp.id !== employeeId);
             this.employees = this.employees.filter(emp => emp.id !== employeeId);
 
             // If the deleted employee was the selected one, reset selection
@@ -96,7 +97,7 @@ export class HomepageComponent implements OnInit {
 
   fetchEmployees(): void {
     this.userService.getUsers().subscribe({
-      next: (employees) => (this.employees = employees),
+      next: (employees) => (this.employees = employees, this.view_employees = employees),
       error: (err) => console.error('Error fetching employees:', err)
     });
   }
@@ -145,7 +146,8 @@ export class HomepageComponent implements OnInit {
 
   searchEmployee(event: Event): void {
     const query = (event.target as HTMLInputElement).value.toLowerCase();
-    this.employees = this.employees.filter((employee) =>
+    this.view_employees = {...this.employees}
+    this.view_employees = this.employees.filter((employee) =>
       `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(query)
     );
   }

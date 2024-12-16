@@ -20,7 +20,7 @@
         />
       </div>
       <div class="sidebar-header">
-        <h2>Mitarbeiter</h2>
+        <h2 class="sidebar-header-h2">Mitarbeiter</h2>
         <span
           *ngIf="isAdmin"
           class="add-icon"
@@ -31,7 +31,7 @@
       </div>
       <ul class="user-list">
         <li
-          *ngFor="let employee of employees"
+          *ngFor="let employee of view_employees"
           (click)="onEmployeeClick(employee.id)"
           [class.active]="employee.id === selectedEmployeeId"
         >
@@ -51,15 +51,15 @@
 
     <main class="content">
       <div class="welcome">
-        <h1>Willkommen, {{ userService.user.username }}!</h1>
+        <h1 class="welcome-title">Willkommen, {{ userService.user.username }}!</h1>
       </div>
 
       <section *ngIf="isAdmin" class="admin-dashboard">
-        <h2>Manager Dashboard</h2>
+        <h2 class="manager-dashboard">Manager Dashboard</h2>
         <button class="admin-action-button" (click)="generateReport()">
           Bericht generieren
         </button>
-        <p>Hier können Sie die Arbeitszeiten der Mitarbeiter verwalten und Berichte generieren.</p>
+        <p class="dashboard-p">Hier können Sie die Arbeitszeiten der Mitarbeiter verwalten und Berichte generieren.</p>
       </section>
 
       <section *ngIf="!isAdmin" class="employee-shifts">

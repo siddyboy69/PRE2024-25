@@ -4,13 +4,6 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f4f7f9;
-  color: #333;
-  line-height: 1.6;
-}
-
 .container {
   display: flex;
   flex-direction: column;
@@ -37,6 +30,10 @@ body {
   align-items: center;
 }
 
+.welcome-title {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .hamburger-icon {
   font-size: 1.5rem;
   color: #333;
@@ -47,7 +44,17 @@ body {
   color: #007bff;
 }
 
+.manager-dashboard {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin-bottom: 20px;
+}
+
+.dashboard-p {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .navbar-title {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1.5rem;
   font-weight: bold;
   color: #007bff;
@@ -116,7 +123,8 @@ body {
   border-bottom: 1px solid #e0e0e0;
 }
 
-.sidebar-header h2 {
+.sidebar-header-h2 {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   font-size: 1.2rem;
   color: #333;
@@ -135,6 +143,10 @@ body {
 .user-list {
   list-style: none;
   padding: 0;
+}
+
+.user-name {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .user-list li {
