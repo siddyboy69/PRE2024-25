@@ -1,13 +1,14 @@
+<nav class="navbar">
+  <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
+    <span class="hamburger-icon">&#9776;</span>
+  </div>
+  <div class="navbar-title">Zeitausgleich</div>
+  <div class="navbar-actions">
+    <button class="logout-button" (click)="logout()">Abmelden</button>
+  </div>
+</nav>
+
 <div class="container">
-  <nav class="navbar">
-    <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
-      <span class="hamburger-icon">&#9776;</span>
-    </div>
-    <div class="navbar-title">Zeitausgleich</div>
-    <div class="navbar-actions">
-      <button class="logout-button" (click)="logout()">Abmelden</button>
-    </div>
-  </nav>
 
   <div class="content-wrapper">
     <aside class="sidebar" [class.sidebar-open]="isSidebarOpen">

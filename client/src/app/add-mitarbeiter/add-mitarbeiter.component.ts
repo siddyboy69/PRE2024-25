@@ -2,14 +2,16 @@ import { Component } from '@angular/core';
 import { UserService } from '../../_service/user.service';
 import { Router } from '@angular/router';
 import {FormsModule} from '@angular/forms';
+import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-add-mitarbeiter',
   standalone: true,
   templateUrl: './add-mitarbeiter.component.html',
-  imports: [
-    FormsModule
-  ],
+    imports: [
+        FormsModule,
+        NgIf
+    ],
   styleUrls: ['./add-mitarbeiter.component.css']
 })
 export class AddMitarbeiterComponent {
@@ -42,4 +44,15 @@ export class AddMitarbeiterComponent {
       }
     });
   }
+
+  logout(): void {
+    this.userService.logout();
+    this.router.navigate(['/']);
+  }
+
+  goBack(): void {
+    this.router.navigate(['/homepage']);
+  }
+
+
 }

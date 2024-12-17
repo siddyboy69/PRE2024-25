@@ -38,10 +38,12 @@
   font-size: 1.5rem;
   color: #333;
   transition: color 0.3s ease;
+  position: absolute;
 }
 
 .hamburger-icon:hover {
-  color: #007bff;
+  color: #A7D46C;
+  position: absolute;
 }
 
 .manager-dashboard {
@@ -54,10 +56,9 @@
 }
 
 .navbar-title {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1.5rem;
   font-weight: bold;
-  color: #007bff;
+  color: #A7D46C;
   flex-grow: 1;
   text-align: center;
 }
@@ -75,10 +76,12 @@
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  position: relative;
 }
 
 .logout-button:hover {
   background-color: #c82333;
+  position: relative;
 }
 
 /* Content Wrapper */
@@ -132,12 +135,12 @@
 
 .add-icon {
   cursor: pointer;
-  color: #007bff;
+  color: #A7D46C;
   transition: color 0.3s ease;
 }
 
 .add-icon:hover {
-  color: #0056b3;
+  color: #92C257;
 }
 
 .user-list {
@@ -209,12 +212,12 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: #007bff;
+  color: #444;
   transition: color 0.3s ease;
 }
 
 .date-navigation .nav-button:hover {
-  color: #0056b3;
+  color: #333;
 }
 
 .date-navigation h2 {
@@ -226,7 +229,7 @@
 .shift-button,
 .submit-button,
 .nav-button {
-  background-color: #007bff;
+  background-color: #A7D46C;
   color: white;
   border: none;
   padding: 10px 15px;
@@ -241,7 +244,7 @@
 .shift-button:hover,
 .submit-button:hover,
 .nav-button:hover {
-  background-color: #0056b3;
+  background-color: #92C257;
 }
 
 .shift-actions {

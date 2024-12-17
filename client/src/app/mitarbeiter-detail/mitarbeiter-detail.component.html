@@ -1,7 +1,51 @@
-<div *ngIf="employee">
-  <h2>Employee Details</h2>
-  <p><strong>Username:</strong> {{ employee.username }}</p>
-  <p><strong>First Name:</strong> {{ employee.firstname }}</p>
-  <p><strong>Last Name:</strong> {{ employee.lastname }}</p>
-  <p><strong>Sex:</strong> {{ employee.sex }}</p>
+<nav class="navbar">
+  <div class="navbar-title">Zeitausgleich</div>
+</nav>
+
+<div class="back-button-wrapper">
+  <a class="back-button" (click)="goBack()">← Zurück zur Übersicht</a>
+</div>
+
+<div *ngIf="employee" class="employee-detail-container">
+  <div class="employee-card">
+    <h2 class="employee-title">Mitarbeiter Details</h2>
+    <div *ngIf="!isEditing; else editForm">
+      <p><strong>Username:</strong> {{ employee.username }}</p>
+      <p><strong>Vorname:</strong> {{ employee.firstname }}</p>
+      <p><strong>Nachname:</strong> {{ employee.lastname }}</p>
+      <p><strong>Geschlecht:</strong> {{ employee.sex }}</p>
+      <button class="edit-button" (click)="toggleEdit()">Bearbeiten</button>
+    </div>
+
+    <!-- Edit Form -->
+    <ng-template #editForm>
+      <form (ngSubmit)="saveChanges()">
+        <div class="form-group">
+          <label>Username</label>
+          <input [(ngModel)]="employee.username" name="username" required />
+        </div>
+        <div class="form-group">
+          <label>Vorname</label>
+          <input [(ngModel)]="employee.firstname" name="firstname" required />
+        </div>
+        <div class="form-group">
+          <label>Nachname</label>
+          <input [(ngModel)]="employee.lastname" name="lastname" required />
+        </div>
+        <div class="form-group">
+          <label>Geschlecht</label>
+          <select [(ngModel)]="employee.sex" name="sex" required>
+            <option value="Männlich">Männlich</option>
+            <option value="Weiblich">Weiblich</option>
+            <option value="Divers">Divers</option>
+          </select>
+        </div>
+        <div class="form-buttons">
+          <button type="submit" class="save-button">Speichern</button>
+          <button type="button" class="cancel-button" (click)="toggleEdit()">Abbrechen</button>
+        </div>
+
+      </form>
+    </ng-template>
+  </div>
 </div>

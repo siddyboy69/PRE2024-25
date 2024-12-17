@@ -1,0 +1,138 @@
+/* General Styles */
+.employee-detail-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 90vh;
+  padding: 20px;
+  background-color: #f7f9fc;
+}
+
+.employee-card {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 25px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.employee-title {
+  text-align: center;
+  color: #A7D46C;
+  margin-bottom: 20px;
+}
+
+p {
+  margin: 10px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-button {
+  background-color: #A7D46C;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #92C257;
+  transform: scale(1.05);
+}
+
+.save-button {
+  background-color: #007BFF;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.cancel-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
+}
+
+/* Back Button */
+.back-button-wrapper {
+  position: absolute;
+  top: 80px;
+  left: 20px;
+}
+
+.back-button {
+  color: #A7D46C;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.back-button:hover {
+  color: #92C257;
+  transform: translateX(-5px);
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #A7D46C;
+  box-shadow: 0 0 5px rgba(167, 212, 108, 0.5);
+}
+
+.form-buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
