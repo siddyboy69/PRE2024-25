@@ -60,12 +60,15 @@ body {
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   position: relative;
+  width: 92px;
+  height: 31px;
 }
 
 .logout-button:hover {
   background-color: #c82333;
-  transform: scale(1.05);
   position: relative;
+  width: 92px;
+  height: 31px;
 }
 
 /* Back Button */
