@@ -12,7 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 's3cureP@ssW0rd12345!';
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Extract token from 'Bearer <token>'
+    const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
         return res.status(403).send({ message: 'No token provided!' });
@@ -22,7 +22,7 @@ const verifyToken = (req, res, next) => {
         if (err) {
             return res.status(401).send({ message: 'Unauthorized!' });
         }
-        req.body.userId = decoded.id; // Save user ID for future use
+        req.userId = decoded.id; // Changed from req.body.userId to req.userId
         next();
     });
 };
@@ -36,26 +36,25 @@ userRouter.get("/", verifyToken, (req, res) => {
             return res.status(500).send("Server error, please contact support.");
         }
 
-        for (let i = 0; i < rows.length; i++) {
+        for (let row of rows) {
             data.push(
                 new User(
-                    rows[i].id,
-                    rows[i].uuid,
-                    rows[i].username,
-                    rows[i].password,
-                    rows[i].is_admin,
-                    rows[i].firstname,
-                    rows[i].lastname,
-                    rows[i].sex
+                    row.id,
+                    row.uuid,
+                    row.username,
+                    row.password,
+                    row.is_admin,
+                    row.firstname,
+                    row.lastname,
+                    row.sex
                 )
             );
         }
-        console.log(data);
         res.status(200).send(data);
     });
 });
 
-// Login route with password verification and JWT generation
+// Login route
 userRouter.post("/login/", async (req, res, next) => {
     const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
 
@@ -73,7 +72,6 @@ userRouter.post("/login/", async (req, res, next) => {
             return res.status(400).send({ message: "Password is incorrect" });
         }
 
-        // Generate JWT token
         const token = jwt.sign(
             { id: user.id, username: user.username, isAdmin: user.is_admin },
             JWT_SECRET,
@@ -91,12 +89,11 @@ userRouter.post("/login/", async (req, res, next) => {
             user.sex
         );
 
-        console.log("-><<<< " + JSON.stringify(data));
-        res.status(200).send({ user: data, token }); // Send user data and token
+        res.status(200).send({ user: data, token });
     });
 });
 
-// Registration route with password hashing
+// Registration route
 userRouter.post("/register/", async (req, res, next) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -109,7 +106,7 @@ userRouter.post("/register/", async (req, res, next) => {
             if (err) return next(err);
 
             if (rows.affectedRows > 0) {
-                pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
+                pool.query('SELECT * FROM user WHERE id = ?', [rows.insertId], (err, rws) => {
                     if (err) return next(err);
                     if (rws.length > 0) {
                         const usr = {
@@ -137,24 +134,52 @@ userRouter.post("/register/", async (req, res, next) => {
 });
 
 // Update user details
-userRouter.put("/update/", verifyToken, (req, res, next) => {
-    const sql = `UPDATE user SET firstname = ${pool.escape(req.body.firstName)}, 
-                                 lastname = ${pool.escape(req.body.lastName)}, 
-                                 sex = ${pool.escape(req.body.sex)} 
-                 WHERE id = ${pool.escape(req.body.id)}`;
-    console.log("_________   " + sql);
+userRouter.put("/update", verifyToken, (req, res, next) => {
+    const { id, userId, ...updateFields } = req.body; // Exclude both id and userId
+
+    if (!id) {
+        return res.status(400).send({ message: 'User ID is required' });
+    }
+
+    const updateParts = Object.entries(updateFields)
+        .filter(([_, value]) => value !== undefined && value !== null)
+        .map(([key, _]) => `${key} = ${pool.escape(updateFields[key])}`);
+
+    if (updateParts.length === 0) {
+        return res.status(400).send({ message: 'No fields to update' });
+    }
+
+    const sql = `UPDATE user SET ${updateParts.join(', ')} WHERE id = ${pool.escape(id)}`;
+
     pool.query(sql, (err) => {
-        if (err) return next(err);
-        res.status(200).send("User updated successfully.");
+        if (err) {
+            console.error("Update error:", err);
+            return next(err);
+        }
+
+        pool.query('SELECT id, username, firstname, lastname, sex FROM user WHERE id = ?',
+            [id],
+            (err, rows) => {
+                if (err) {
+                    console.error("Select error:", err);
+                    return next(err);
+                }
+                if (rows.length > 0) {
+                    res.status(200).send(rows[0]);
+                } else {
+                    res.status(404).send({ message: 'User not found after update' });
+                }
+            }
+        );
     });
 });
 
 // Delete user by ID
 userRouter.delete('/delete/:id', verifyToken, (req, res, next) => {
     const userId = req.params.id;
-    const sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
+    const sql = "DELETE FROM user WHERE id = ?";
 
-    pool.query(sql, (err, result) => {
+    pool.query(sql, [userId], (err, result) => {
         if (err) {
             console.log(err);
             return next(err);
@@ -166,14 +191,50 @@ userRouter.delete('/delete/:id', verifyToken, (req, res, next) => {
         }
     });
 });
+
+// Get user details by ID
 userRouter.get("/:id", verifyToken, (req, res, next) => {
     const userId = req.params.id;
-    pool.query("SELECT username, firstname, lastname, sex FROM user WHERE id = ?", [userId], (err, rows) => {
-        if (err) return next(err);
-        if (rows.length > 0) {
-            res.status(200).send(rows[0]);
-        } else {
-            res.status(404).send({ message: "User not found" });
+    pool.query("SELECT username, firstname, lastname, sex FROM user WHERE id = ?",
+        [userId],
+        (err, rows) => {
+            if (err) return next(err);
+            if (rows.length > 0) {
+                res.status(200).send(rows[0]);
+            } else {
+                res.status(404).send({ message: "User not found" });
+            }
         }
+    );
+});
+
+// Get user shifts
+userRouter.get('/shifts/:userId', verifyToken, (req, res, next) => {
+    const userId = req.params.userId;
+    const query = `
+        SELECT id, shiftStart, shiftEnd, breakStart, breakEnd
+        FROM shift
+        WHERE user_id = ?;
+    `;
+    pool.query(query, [userId], (err, rows) => {
+        if (err) {
+            return next(err);
+        }
+        res.status(200).send(rows);
+    });
+});
+
+// Add user shifts
+userRouter.post('/shifts', verifyToken, (req, res, next) => {
+    const { userId, shiftStart, shiftEnd, breakStart, breakEnd } = req.body;
+    const query = `
+        INSERT INTO shift (user_id, shiftStart, shiftEnd, breakStart, breakEnd)
+        VALUES (?, ?, ?, ?, ?);
+    `;
+    pool.query(query, [userId, shiftStart, shiftEnd, breakStart, breakEnd], (err, result) => {
+        if (err) {
+            return next(err);
+        }
+        res.status(200).send({ message: 'Shift added successfully.', id: result.insertId });
     });
 });

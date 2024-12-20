@@ -93,16 +93,30 @@ export class UserService {
 
   /** Update user details (NEW) */
   updateUser(id: number, updatedData: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/users/update/${id}`, updatedData, { headers: this.getAuthHeaders() }).pipe(
-      tap(_ => this.msg.addMessage('User updated successfully')),
-      catchError(err => {
-        this.msg.addMessage('Failed to update user');
-        console.error('Error updating user:', err);
-        return of(new User(0, '', '', '', false, '', '', ''));
-      })
-    );
-  }
+    // Create the data object with the correct casing
+    const data = {
+      id: id,  // Make sure we explicitly send the id
+      username: updatedData.username,
+      firstname: updatedData.firstname,  // Changed to lowercase to match backend
+      lastname: updatedData.lastname,    // Changed to lowercase to match backend
+      sex: updatedData.sex
+    };
 
+    console.log('Sending update data:', data); // Add this for debugging
+
+    return this.http.put<User>(`${this.apiUrl}/users/update`, data, { headers: this.getAuthHeaders() })
+      .pipe(
+        tap(response => {
+          console.log('Update response:', response); // Add this for debugging
+          this.msg.addMessage('User updated successfully');
+        }),
+        catchError(err => {
+          this.msg.addMessage('Failed to update user');
+          console.error('Error updating user:', err);
+          return of(new User(0, '', '', '', false, '', '', ''));
+        })
+      );
+  }
   /** Delete a user */
   deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/delete/${id}`, { headers: this.getAuthHeaders() }).pipe(

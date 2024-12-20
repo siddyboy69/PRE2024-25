@@ -4,8 +4,8 @@ export class User {
   username: string = "";
   password: string = "";
   isAdmin: boolean = false;
-  firstName: string = "";
-  lastName: string = "";
+  firstname: string = "";
+  lastname: string = "";
   sex: string = "";
 
   constructor(
@@ -14,8 +14,8 @@ export class User {
     username: string,
     password: string,
     isAdmin: boolean,
-    firstName: string,
-    lastName: string,
+    firstname: string,
+    lastname: string,
     sex: string
   ) {
     this.id = id;
@@ -23,8 +23,8 @@ export class User {
     this.username = username;
     this.password = password;
     this.isAdmin = isAdmin;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    this.firstname = firstname;
+    this.lastname = lastname;
     this.sex = sex;
   }
 }

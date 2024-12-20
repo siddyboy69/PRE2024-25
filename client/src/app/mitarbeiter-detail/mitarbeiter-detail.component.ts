@@ -26,8 +26,14 @@ export class MitarbeiterDetailComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.userService.getUserById(id).subscribe({
-      next: (employee) => {
-        this.employee = { ...employee }; // Clone the employee data
+      next: (employeeData) => {
+        this.employee = {
+          id: id,  // Explicitly set the ID
+          username: employeeData.username,
+          firstname: employeeData.firstname,
+          lastname: employeeData.lastname,
+          sex: employeeData.sex
+        };
       },
       error: (err) => console.error('Error fetching employee:', err)
     });
@@ -38,12 +44,36 @@ export class MitarbeiterDetailComponent implements OnInit {
   }
 
   saveChanges(): void {
-    this.userService.updateUser(this.employee.id, this.employee).subscribe({
-      next: () => {
-        this.msg.addMessage('Mitarbeiter erfolgreich aktualisiert');
-        this.isEditing = false; // Exit edit mode
+    if (!this.employee || !this.employee.id) {
+      console.error('No employee ID available');
+      return;
+    }
+
+    // Only include fields that were actually changed
+    const updatedData: any = {
+      id: this.employee.id
+    };
+
+    if (this.employee.username) updatedData.username = this.employee.username;
+    if (this.employee.firstname) updatedData.firstname = this.employee.firstname;
+    if (this.employee.lastname) updatedData.lastname = this.employee.lastname;
+    if (this.employee.sex) updatedData.sex = this.employee.sex;
+
+    this.userService.updateUser(this.employee.id, updatedData).subscribe({
+      next: (response) => {
+        if (response) {
+          this.employee = {
+            ...this.employee,
+            ...response
+          };
+          this.msg.addMessage('Mitarbeiter erfolgreich aktualisiert');
+          this.isEditing = false;
+        } else {
+          console.error('Invalid response from server:', response);
+          this.msg.addMessage('Fehler beim Aktualisieren des Mitarbeiters');
+        }
       },
-      error: (err: any) => {
+      error: (err) => {
         console.error('Error updating employee:', err);
         this.msg.addMessage('Fehler beim Aktualisieren des Mitarbeiters');
       }

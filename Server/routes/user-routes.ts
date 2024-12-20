@@ -12,7 +12,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 's3cureP@ssW0rd12345!';
 
 // Middleware to verify JWT token
 const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
-    const token = req.headers['authorization']?.split(' ')[1]; // Extract token from 'Bearer <token>'
+    const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
         res.status(403).send({ message: 'No token provided!' });
@@ -24,7 +24,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
             res.status(401).send({ message: 'Unauthorized!' });
             return;
         }
-        (req as any).userId = decoded.id; // Save user ID for future use
+        (req as any).userId = decoded.id;
         next();
     });
 };
@@ -50,12 +50,11 @@ userRouter.get('/', verifyToken, (req: Request, res: Response): void => {
                 row.sex
             ));
         }
-        console.log(data);
         res.status(200).send(data);
     });
 });
 
-// Login route - Verifies user credentials, generates JWT on success
+// Login route
 userRouter.post('/login/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const sqlUsernameCheck = "SELECT * FROM `user` WHERE user.username=" + pool.escape(req.body.username);
 
@@ -78,7 +77,6 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
             return;
         }
 
-        // Generate JWT token on successful login
         const token = jwt.sign(
             { id: user.id, username: user.username, isAdmin: user.is_admin },
             JWT_SECRET,
@@ -96,12 +94,11 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
             user.sex
         );
 
-        console.log("-><<<< " + JSON.stringify(data));
-        res.status(200).send({ user: data, token }); // Send user data and token
+        res.status(200).send({ user: data, token });
     });
 });
 
-// Registration route - Hashes password and registers a new user
+// Registration route
 userRouter.post('/register/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -117,7 +114,7 @@ userRouter.post('/register/', async (req: Request, res: Response, next: NextFunc
             }
 
             if (rows.affectedRows > 0) {
-                pool.query('SELECT * FROM user WHERE id = ' + rows.insertId, (err, rws) => {
+                pool.query('SELECT * FROM user WHERE id = ?', [rows.insertId], (err, rws) => {
                     if (err) {
                         next(err);
                         return;
@@ -148,27 +145,56 @@ userRouter.post('/register/', async (req: Request, res: Response, next: NextFunc
 });
 
 // Update user details
-userRouter.put('/update/', verifyToken, (req: Request, res: Response, next: NextFunction): void => {
-    const sql = `UPDATE user SET firstname = ${pool.escape(req.body.firstName)}, 
-                                 lastname = ${pool.escape(req.body.lastName)}, 
-                                 sex = ${pool.escape(req.body.sex)} 
-                 WHERE id = ${pool.escape(req.body.id)}`;
-    console.log("_________   " + sql);
+userRouter.put('/update', verifyToken, (req: Request, res: Response, next: NextFunction): void => {
+    const { id, userId, ...updateFields } = req.body; // Exclude both id and userId
+
+    if (!id) {
+        res.status(400).send({ message: 'User ID is required' });
+        return;
+    }
+
+    const updateParts = Object.entries(updateFields)
+        .filter(([_, value]) => value !== undefined && value !== null)
+        .map(([key, _]) => `${key} = ${pool.escape(updateFields[key])}`);
+
+    if (updateParts.length === 0) {
+        res.status(400).send({ message: 'No fields to update' });
+        return;
+    }
+
+    const sql = `UPDATE user SET ${updateParts.join(', ')} WHERE id = ${pool.escape(id)}`;
+
     pool.query(sql, (err) => {
         if (err) {
+            console.error("Update error:", err);
             next(err);
             return;
         }
-        res.status(200).send('User updated successfully.');
+
+        pool.query('SELECT id, username, firstname, lastname, sex FROM user WHERE id = ?',
+            [id],
+            (err, rows) => {
+                if (err) {
+                    console.error("Select error:", err);
+                    next(err);
+                    return;
+                }
+                if (rows.length > 0) {
+                    res.status(200).send(rows[0]);
+                } else {
+                    res.status(404).send({ message: 'User not found after update' });
+                }
+            }
+        );
     });
 });
 
 // Delete user by ID
 userRouter.delete('/delete/:id', verifyToken, (req: Request, res: Response, next: NextFunction): void => {
     const userId = req.params.id;
-    const sql = "DELETE FROM user WHERE id = " + pool.escape(userId);
+    const sql = "DELETE FROM user WHERE id = ?";
 
-    pool.query(sql, (err, result) => {
+    pool.query(sql, [userId], (err, result) => {
         if (err) {
             console.log(err);
             next(err);
@@ -182,20 +208,23 @@ userRouter.delete('/delete/:id', verifyToken, (req: Request, res: Response, next
     });
 });
 
-// Get user details by ID (excluding password)
+// Get user details by ID
 userRouter.get('/:id', verifyToken, (req: Request, res: Response, next: NextFunction): void => {
     const userId = req.params.id;
-    pool.query('SELECT username, firstname, lastname, sex FROM user WHERE id = ?', [userId], (err, rows) => {
-        if (err) {
-            next(err);
-            return;
+    pool.query('SELECT username, firstname, lastname, sex FROM user WHERE id = ?',
+        [userId],
+        (err, rows) => {
+            if (err) {
+                next(err);
+                return;
+            }
+            if (rows.length > 0) {
+                res.status(200).send(rows[0]);
+            } else {
+                res.status(404).send({ message: 'User not found' });
+            }
         }
-        if (rows.length > 0) {
-            res.status(200).send(rows[0]);
-        } else {
-            res.status(404).send({ message: 'User not found' });
-        }
-    });
+    );
 });
 
 // Get user shifts
