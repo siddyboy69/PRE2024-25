@@ -4,8 +4,8 @@ export class User {
   username: string = "";
   password: string = "";
   isAdmin: boolean = false;
-  firstname: string = "";
-  lastname: string = "";
+  firstname: string = ""; // Keep lowercase for frontend consistency
+  lastname: string = "";  // Keep lowercase for frontend consistency
   sex: string = "";
 
   constructor(
@@ -23,8 +23,8 @@ export class User {
     this.username = username;
     this.password = password;
     this.isAdmin = isAdmin;
-    this.firstname = firstname;
-    this.lastname = lastname;
+    this.firstname = firstname || ''; // Add fallback
+    this.lastname = lastname || '';   // Add fallback
     this.sex = sex;
   }
 }

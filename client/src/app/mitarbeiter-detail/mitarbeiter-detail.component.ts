@@ -83,4 +83,8 @@ export class MitarbeiterDetailComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/homepage']);
   }
+  logout(): void {
+    this.userService.logout();
+    this.router.navigate(['/']);
+  }
 }

@@ -4,11 +4,12 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import {MessageService} from '../../_service/message.service';
+import { MessageService } from '../../_service/message.service';
+
 interface Employee {
   id: number;
-  firstName: string;
-  lastName: string;
+  firstname: string;
+  lastname: string;
   isAdmin: boolean;
 }
 
@@ -49,7 +50,13 @@ export class HomepageComponent implements OnInit {
     private http: HttpClient,
     private msg: MessageService
   ) {
-    this.isAdmin = this.userService.isAdmin();
+    const storedUser = this.userService.loadUserFromLocalStorage();
+    this.userService.user = storedUser;
+
+    // Check admin status after user is loaded
+    this.isAdmin = storedUser.isAdmin;
+    console.log('Is Admin:', this.isAdmin); // Add for debugging
+
     if (this.isAdmin) {
       this.fetchEmployees();
     }
@@ -58,10 +65,9 @@ export class HomepageComponent implements OnInit {
   ngOnInit(): void {
     this.updateDisplayDate();
   }
-  deleteEmployee(employeeId: number, event: Event): void {
-    event.stopPropagation(); // Prevent triggering other click events
 
-    // Confirmation dialog in German
+  deleteEmployee(employeeId: number, event: Event): void {
+    event.stopPropagation();
     const confirmDelete = confirm('Sind Sie sicher, dass Sie diesen Mitarbeiter löschen möchten?');
 
     if (confirmDelete) {
@@ -70,12 +76,9 @@ export class HomepageComponent implements OnInit {
           next: (response) => {
             console.log('Employee deleted:', response);
             this.msg.addMessage('Mitarbeiter erfolgreich gelöscht');
-
-            // Remove the employee from the local list
             this.view_employees = this.employees.filter(emp => emp.id !== employeeId);
             this.employees = this.employees.filter(emp => emp.id !== employeeId);
 
-            // If the deleted employee was the selected one, reset selection
             if (this.selectedEmployeeId === employeeId) {
               this.selectedEmployeeId = null;
             }
@@ -91,14 +94,22 @@ export class HomepageComponent implements OnInit {
       }
     }
   }
+
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
 
   fetchEmployees(): void {
     this.userService.getUsers().subscribe({
-      next: (employees) => (this.employees = employees, this.view_employees = employees),
-      error: (err) => console.error('Error fetching employees:', err)
+      next: (employees) => {
+        console.log('Received employees:', employees);
+        this.employees = employees;
+        this.view_employees = employees;
+      },
+      error: (err) => {
+        console.error('Error fetching employees:', err);
+        this.msg.addMessage('Error fetching employees');
+      }
     });
   }
 
@@ -147,15 +158,14 @@ export class HomepageComponent implements OnInit {
   searchEmployee(event: Event): void {
     const query = (event.target as HTMLInputElement).value.toLowerCase();
     this.view_employees = this.employees.filter((employee) =>
-      `${employee.firstName} ${employee.lastName}`.toLowerCase().includes(query)
+      `${employee.firstname} ${employee.lastname}`.toLowerCase().includes(query)
     );
 
-    // Add a check for empty results
     if (this.view_employees.length === 0) {
       this.view_employees = [{
-        id: -1, // Use a sentinel ID
-        firstName: 'Mitarbeiter',
-        lastName: 'nicht gefunden',
+        id: -1,
+        firstname: 'Mitarbeiter',
+        lastname: 'nicht gefunden',
         isAdmin: false
       }];
     }
@@ -170,14 +180,9 @@ export class HomepageComponent implements OnInit {
 
   onEmployeeClick(employeeId: number): void {
     this.selectedEmployeeId = employeeId;
-
-    // Fetch shifts first
     this.fetchShifts(employeeId);
-
-    // Navigate to the employee details page
     this.router.navigate(['/mitarbeiter-detail', employeeId]);
   }
-
 
   addShift(newShift: Shift): void {
     this.http.post('http://localhost:3000/users/shifts', newShift).subscribe({

@@ -9,27 +9,48 @@ import { MessageService } from './message.service';
   providedIn: 'root'
 })
 export class UserService {
-  user: User = this.loadUserFromLocalStorage();
-  private apiUrl = 'http://localhost:3000';  // Base URL for your backend API
+  user: User;
+  private apiUrl = 'http://localhost:3000';
 
-  constructor(private http: HttpClient, private msg: MessageService) {}
+  constructor(private http: HttpClient, private msg: MessageService) {
+    // Initialize with a default user
+    this.user = new User(0, '', '', '', false, '', '', '');
+    // Try to load from localStorage
+    const storedUser = this.loadUserFromLocalStorage();
+    if (storedUser.id !== 0) {
+      this.user = storedUser;
+    }
+  }
 
-  /** Check if user is logged in */
+
   isLoggedIn(): boolean {
     return this.user && this.user.id !== 0 && localStorage.getItem('auth_token') !== null;
   }
 
-  /** Check if user has admin privileges */
+
   isAdmin(): boolean {
-    return this.user && this.user.isAdmin;
+    return Boolean(this.user && this.user.isAdmin);
   }
 
-  /** User login */
+
+  // In UserService login method
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/users/login`, { username, password }).pipe(
       tap(response => {
+        console.log('Login response:', response);
         this.msg.addMessage('Login successful');
-        this.user = response.user;
+        // Fix property name mapping
+        this.user = new User(
+          response.user.id,
+          response.user.uuid,
+          response.user.username,
+          response.user.password,
+          response.user.isAdmin === 1 || response.user.isAdmin === true, // Handle both cases
+          response.user.firstName, // Changed from firstname to firstName
+          response.user.lastName,  // Changed from lastname to lastName
+          response.user.sex
+        );
+        console.log('Created user object:', this.user);
         this.saveUserToLocalStorage(this.user);
         localStorage.setItem('auth_token', response.token);
       }),
@@ -40,11 +61,10 @@ export class UserService {
     );
   }
 
-  /** Register a new user */
-  register(username: string, password: string, email: string, firstName: string, lastName: string, sex: string, address: string, postalcode: string, city: string, country: string): Observable<User> {
+
+  register(username: string, password: string, email: string, firstname: string, lastname: string, sex: string, address: string, postalcode: string, city: string, country: string): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/users/register`, {
-      username, password, firstname: firstName, lastname: lastName,
-      sex, email, address, postalcode, city, country
+      username, password, firstname, lastname, sex, email, address, postalcode, city, country
     }).pipe(
       tap(res => this.msg.addMessage('Register successful')),
       catchError(_ => {
@@ -54,10 +74,16 @@ export class UserService {
     );
   }
 
-  /** Fetch all users */
   getUsers(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users`, { headers: this.getAuthHeaders() }).pipe(
-      tap(res => console.log('Users fetched:', res)),
+      tap(users => console.log('Raw users data:', users)), // Debug log
+      map(users => users.map((user: any) => ({
+        id: user.id,
+        firstname: user.firstName || user.firstname, // Handle both cases
+        lastname: user.lastName || user.lastname,    // Handle both cases
+        isAdmin: user.is_admin === 1 || user.is_admin === true
+      }))),
+      tap(mappedUsers => console.log('Mapped users:', mappedUsers)), // Debug log
       catchError(err => {
         if (err.status === 401) {
           this.logout();
@@ -68,7 +94,6 @@ export class UserService {
     );
   }
 
-  /** Fetch user details by ID */
   getUserById(id: number): Observable<User> {
     return this.http.get<any>(`${this.apiUrl}/users/${id}`, { headers: this.getAuthHeaders() }).pipe(
       map(employeeData => new User(
@@ -93,21 +118,20 @@ export class UserService {
 
   /** Update user details (NEW) */
   updateUser(id: number, updatedData: Partial<User>): Observable<User> {
-    // Create the data object with the correct casing
     const data = {
-      id: id,  // Make sure we explicitly send the id
+      id: id,
       username: updatedData.username,
-      firstname: updatedData.firstname,  // Changed to lowercase to match backend
-      lastname: updatedData.lastname,    // Changed to lowercase to match backend
+      firstname: updatedData.firstname,
+      lastname: updatedData.lastname,
       sex: updatedData.sex
     };
 
-    console.log('Sending update data:', data); // Add this for debugging
+    console.log('Sending update data:', data);
 
     return this.http.put<User>(`${this.apiUrl}/users/update`, data, { headers: this.getAuthHeaders() })
       .pipe(
         tap(response => {
-          console.log('Update response:', response); // Add this for debugging
+          console.log('Update response:', response);
           this.msg.addMessage('User updated successfully');
         }),
         catchError(err => {
@@ -117,6 +141,7 @@ export class UserService {
         })
       );
   }
+
   /** Delete a user */
   deleteUser(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/delete/${id}`, { headers: this.getAuthHeaders() }).pipe(
@@ -143,10 +168,22 @@ export class UserService {
     localStorage.setItem('loggedInUser', JSON.stringify(user));
   }
 
-  /** Load user from local storage */
   public loadUserFromLocalStorage(): User {
     const storedUser = localStorage.getItem('loggedInUser');
-    return storedUser ? JSON.parse(storedUser) as User : new User(0, '', '', '', false, '', '', '');
+    if (storedUser) {
+      const userData = JSON.parse(storedUser);
+      return new User(
+        userData.id,
+        userData.uuid,
+        userData.username,
+        userData.password,
+        Boolean(userData.isAdmin), // Ensure boolean conversion
+        userData.firstname,
+        userData.lastname,
+        userData.sex
+      );
+    }
+    return new User(0, '', '', '', false, '', '', '');
   }
 
   /** Helper to generate authorization headers */

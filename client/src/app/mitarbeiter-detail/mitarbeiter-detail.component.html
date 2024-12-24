@@ -1,10 +1,11 @@
 <nav class="navbar">
+  <a class="back-button" (click)="goBack()">← Zurück zur Übersicht</a>
   <div class="navbar-title">Zeitausgleich</div>
+  <div class="navbar-actions">
+    <button class="logout-button" (click)="logout()">Abmelden</button>
+  </div>
 </nav>
 
-<div class="back-button-wrapper">
-  <a class="back-button" (click)="goBack()">← Zurück zur Übersicht</a>
-</div>
 
 <div *ngIf="employee" class="employee-detail-container">
   <div class="employee-card">

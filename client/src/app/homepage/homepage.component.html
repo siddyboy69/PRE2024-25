@@ -1,12 +1,12 @@
-<nav class="navbar">
-  <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
-    <span class="hamburger-icon">&#9776;</span>
-  </div>
-  <div class="navbar-title">Zeitausgleich</div>
-  <div class="navbar-actions">
-    <button class="logout-button" (click)="logout()">Abmelden</button>
-  </div>
-</nav>
+  <nav class="navbar">
+    <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
+      <span class="hamburger-icon">&#9776;</span>
+    </div>
+    <div class="navbar-title">Zeitausgleich</div>
+    <div class="navbar-actions">
+      <button class="logout-button" (click)="logout()">Abmelden</button>
+    </div>
+  </nav>
 
 <div class="container">
 
@@ -37,9 +37,9 @@
           (click)="employee.id !== -1 && onEmployeeClick(employee.id)"
           [class.active]="employee.id === selectedEmployeeId"
         >
-    <span class="user-name">
-      {{ employee.firstName + ' ' + employee.lastName }}
-    </span>
+   <span class="user-name">
+    {{ (employee.firstname || 'No firstname') + ' ' + (employee.lastname || 'No lastname') }}
+   </span>
           <span
             *ngIf="isAdmin && isSidebarOpen && employee.id !== -1"
             class="delete-icon"
@@ -53,7 +53,9 @@
 
     <main class="content">
       <div class="welcome">
-        <h1 class="welcome-title">Willkommen, {{ userService.user.username }}!</h1>
+        <h1 class="welcome-title">
+          Willkommen, {{userService.user.firstname}}!
+        </h1>
       </div>
 
       <section *ngIf="isAdmin" class="admin-dashboard">
