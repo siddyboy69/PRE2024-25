@@ -27,32 +27,7 @@ const verifyToken = (req, res, next) => {
 };
 
 
-shiftRouter.post('/', verifyToken, (req, res) => {
-    const { userId } = req.body;
 
-    // Aktuelles Datum und Zeitzone anpassen
-    const now = new Date();
-    const offset = now.getTimezoneOffset();
-    const localDate = new Date(now.getTime() - (offset * 60 * 1000));
-    const mysqlDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
-
-    const query = `
-        INSERT INTO shift (user_id, shiftStart)
-        VALUES (?, ?);
-    `;
-
-    pool.query(query, [userId, mysqlDateTime], (err, result) => {
-        if (err) {
-            console.error('Error creating shift:', err);
-            return res.status(500).send({ message: 'Error creating shift' });
-        }
-        res.status(201).send({
-            message: 'Shift created successfully',
-            shiftId: result.insertId,
-            shiftStart: mysqlDateTime
-        });
-    });
-});
 
 shiftRouter.get('/user/:userId', verifyToken, (req, res) => {
     const userId = req.params.userId;
@@ -204,5 +179,98 @@ shiftRouter.get('/today/:userId', verifyToken, (req, res) => {
         } else {
             res.status(404).send({ message: 'No shift found for today' });
         }
+    });
+});
+shiftRouter.post('/break/start/:shiftId', verifyToken, (req, res) => {
+    const shiftId = req.params.shiftId;
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+    const mysqlDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const query = `
+        INSERT INTO break (shift_id, breakStart)
+        VALUES (?, ?);
+    `;
+
+    pool.query(query, [shiftId, mysqlDateTime], (err, result) => {
+        if (err) {
+            console.error('Error starting break:', err);
+            return res.status(500).send({ message: 'Error starting break' });
+        }
+        res.status(201).send({
+            message: 'Break started successfully',
+            breakId: result.insertId,
+            breakStart: mysqlDateTime
+        });
+    });
+});
+shiftRouter.post('/', verifyToken, (req, res) => {
+    const { userId } = req.body;
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+    const mysqlDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const query = `
+        INSERT INTO shift (user_id, shiftStart)
+        VALUES (?, ?);
+    `;
+
+    pool.query(query, [userId, mysqlDateTime], (err, result) => {
+        if (err) {
+            console.error('Error creating shift:', err);
+            return res.status(500).send({ message: 'Error creating shift' });
+        }
+        res.status(201).send({
+            message: 'Shift created successfully',
+            shiftId: result.insertId,
+            shiftStart: mysqlDateTime
+        });
+    });
+});
+
+// **2. Pause beenden**
+shiftRouter.put('/break/end/:breakId', verifyToken, (req, res) => {
+    const breakId = req.params.breakId;
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+    const mysqlDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const query = `
+        UPDATE break 
+        SET breakEnd = ? 
+        WHERE id = ?;
+    `;
+
+    pool.query(query, [mysqlDateTime, breakId], (err, result) => {
+        if (err) {
+            console.error('Error ending break:', err);
+            return res.status(500).send({ message: 'Error ending break' });
+        }
+        res.status(200).send({
+            message: 'Break ended successfully',
+            breakEnd: mysqlDateTime
+        });
+    });
+});
+
+
+shiftRouter.get('/breaks/:shiftId', verifyToken, (req, res) => {
+    const shiftId = req.params.shiftId;
+    const query = `
+        SELECT * 
+        FROM break 
+        WHERE shift_id = ?
+        ORDER BY breakStart;
+    `;
+
+    pool.query(query, [shiftId], (err, rows) => {
+        if (err) {
+            console.error('Error fetching breaks:', err);
+            return res.status(500).send({ message: 'Error fetching breaks' });
+        }
+        res.status(200).send(rows);
     });
 });

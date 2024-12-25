@@ -51,45 +51,15 @@ export class ShiftService {
       );
   }
 
-  /** START a new shift */
+
   startShift(userId: number): Observable<any> {
-    const shift = {
-      userId: userId,
-      shiftStart: new Date(),
-    };
-
-    return this.http.post(`${this.apiUrl}/shifts`, shift, { headers: this.getAuthHeaders() })
-      .pipe(
-        tap(_ => this.msg.addMessage('Schicht gestartet')),
-        catchError(this.handleError<any>('startShift'))
-      );
-  }
-
-
-  /** START a break */
-  startBreak(shiftId: number): Observable<any> {
-    const breakStart = {
-      breakStart: new Date()
-    };
-
-    return this.http.put(`${this.apiUrl}/shifts/${shiftId}`, breakStart, { headers: this.getAuthHeaders() })
-      .pipe(
-        tap(_ => this.msg.addMessage('Pause gestartet')),
-        catchError(this.handleError<any>('startBreak'))
-      );
-  }
-
-  /** END a break */
-  endBreak(shiftId: number): Observable<any> {
-    const breakEnd = {
-      breakEnd: new Date()
-    };
-
-    return this.http.put(`${this.apiUrl}/shifts/${shiftId}`, breakEnd, { headers: this.getAuthHeaders() })
-      .pipe(
-        tap(_ => this.msg.addMessage('Pause beendet')),
-        catchError(this.handleError<any>('endBreak'))
-      );
+    const now = new Date();
+    return this.http.post(`${this.apiUrl}/shifts`, { userId },
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(response => console.log('ShiftService start response:', response)),
+      catchError(this.handleError<any>('startShift'))
+    );
   }
 
   /** DELETE a shift */
@@ -156,6 +126,27 @@ export class ShiftService {
         tap(shift => console.log('Today shift:', shift)),
         catchError(this.handleError<any>('getTodayShift', null))
       );
+  }
+  startBreak(userId: number): Observable<any> {
+    const now = new Date();
+    return this.http.post(`${this.apiUrl}/shifts/break/start/${userId}`,
+      { breakStart: now.toISOString() },
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(_ => console.log('Break started')),
+      catchError(this.handleError<any>('startBreak'))
+    );
+  }
+
+  endBreak(userId: number): Observable<any> {
+    const now = new Date();
+    return this.http.post(`${this.apiUrl}/shifts/break/end/${userId}`,
+      { breakEnd: now.toISOString() },
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(_ => console.log('Break ended')),
+      catchError(this.handleError<any>('endBreak'))
+    );
   }
 }
 

@@ -82,17 +82,38 @@
               Schicht beginnen
             </button>
             <button class="shift-button"
-                    [disabled]="!activeShiftStart || activeShiftEnd !== null"
-                    [class.disabled]="!activeShiftStart || activeShiftEnd !== null"
+                    [disabled]="!activeShiftStart || activeShiftEnd !== null || isOnBreak"
+                    [class.disabled]="!activeShiftStart || activeShiftEnd !== null || isOnBreak"
                     (click)="endShift()">
               Schicht beenden
             </button>
-            <button class="shift-button">Pause beginnen</button>
-            <button class="shift-button">Pause beenden</button>
+            <button class="shift-button"
+                    [disabled]="!activeShiftStart || activeShiftEnd !== null || isOnBreak"
+                    [class.disabled]="!activeShiftStart || activeShiftEnd !== null || isOnBreak"
+                    (click)="startBreak()">
+              Pause beginnen
+            </button>
+            <button class="shift-button"
+                    [disabled]="!isOnBreak || activeShiftEnd !== null"
+                    [class.disabled]="!isOnBreak || activeShiftEnd !== null"
+                    (click)="endBreak()">
+              Pause beenden
+            </button>
           </div>
 
           <div class="shift-status">
+            <!-- Shift start -->
             <p *ngIf="activeShiftStart">Schicht begonnen um: {{ activeShiftStart }}</p>
+
+            <!-- Breaks -->
+            <ng-container *ngFor="let break of breaks">
+              <div class="break-info">
+                <p>Pause begonnen um: {{ break.breakStart | date:'HH:mm:ss' }}</p>
+                <p *ngIf="break.breakEnd">Pause beendet um: {{ break.breakEnd | date:'HH:mm:ss' }}</p>
+              </div>
+            </ng-container>
+
+
             <p *ngIf="activeShiftEnd">Schicht beendet um: {{ activeShiftEnd }}</p>
           </div>
         </div>

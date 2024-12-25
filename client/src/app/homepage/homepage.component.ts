@@ -6,6 +6,8 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from '../../_service/message.service';
 import { ShiftService } from '../../_service/shift.service';
+import {Break} from '../../_model/break';
+import {BreakService} from '../../_service/break.service';
 
 interface Employee {
   id: number;
@@ -39,7 +41,14 @@ export class HomepageComponent implements OnInit {
   isSidebarOpen: boolean = false;
   activeShiftStart: string | null = null;
   activeShiftEnd: string | null = null;
+  activeBreakStart: string | null = null;
+  activeBreakEnd: string | null = null;
+  isOnBreak: boolean = false;
+  breakHistory: Array<{startTime: string, endTime: string | null}> = [];
+  currentShiftId: number | null = null;
+  currentBreakId: number | null = null;
 
+  breaks: Break[] = [];
   newShift: Shift = {
     shiftStart: '',
     shiftEnd: '',
@@ -52,7 +61,8 @@ export class HomepageComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private msg: MessageService,
-    private shiftService: ShiftService
+    private shiftService: ShiftService,
+    private breakService: BreakService
   ) {
     const storedUser = this.userService.loadUserFromLocalStorage();
     this.userService.user = storedUser;
@@ -72,6 +82,75 @@ export class HomepageComponent implements OnInit {
       this.checkForActiveShift();
     }
   }
+  startBreak(): void {
+    console.log('Starting break, currentShiftId:', this.currentShiftId); // Debug log
+
+    if (!this.currentShiftId) {
+      console.error('No active shift ID found');
+      this.msg.addMessage('Keine aktive Schicht gefunden');
+      return;
+    }
+
+    this.breakService.startBreak(this.currentShiftId).subscribe({
+      next: (response) => {
+        console.log('Break started successfully:', response); // Debug log
+
+        // Update component state
+        this.currentBreakId = response.breakId;
+        this.isOnBreak = true;
+
+        // Create new break object and add to array
+        const newBreak = new Break(
+          response.breakId,
+          this.currentShiftId!,
+          new Date(response.breakStart)
+        );
+        this.breaks.push(newBreak);
+
+        // Show success message
+        this.msg.addMessage('Pause wurde gestartet');
+      },
+      error: (err) => {
+        console.error('Error starting break:', err);
+        this.msg.addMessage('Fehler beim Starten der Pause');
+      }
+    });
+  }
+
+  endBreak(): void {
+    if (this.currentBreakId) {
+      this.breakService.endBreak(this.currentBreakId).subscribe({
+        next: (response) => {
+          const currentBreak = this.breaks.find(b => b.id === this.currentBreakId);
+          if (currentBreak) {
+            currentBreak.breakEnd = new Date();
+          }
+          this.currentBreakId = null;
+          this.isOnBreak = false;
+        },
+        error: (err) => {
+          console.error('Error ending break:', err);
+          this.msg.addMessage('Fehler beim Beenden der Pause');
+        }
+      });
+    }
+  }
+
+  loadBreaks(): void {
+    if (this.currentShiftId) {
+      this.breakService.getBreaks(this.currentShiftId).subscribe({
+        next: (breaks) => {
+          this.breaks = breaks;
+          const activeBreak = breaks.find(b => !b.breakEnd);
+          if (activeBreak) {
+            this.currentBreakId = activeBreak.id;
+            this.isOnBreak = true;
+          }
+        },
+        error: (err) => console.error('Error loading breaks:', err)
+      });
+    }
+  }
   endShift(): void {
     const userId = this.userService.user.id;
     this.shiftService.endShift(userId).subscribe({
@@ -86,7 +165,7 @@ export class HomepageComponent implements OnInit {
       }
     });
   }
-  // In homepage.component.ts
+
   checkForActiveShift(): void {
     const userId = this.userService.user.id;
     this.shiftService.getTodayShift(userId).subscribe({
@@ -96,6 +175,23 @@ export class HomepageComponent implements OnInit {
           if (shift.shiftStart) {
             const shiftDate = new Date(shift.shiftStart.replace('Z', ''));
             this.activeShiftStart = shiftDate.toLocaleTimeString('de-DE');
+          }
+
+          // Handle break times
+          if (shift.breakStart) {
+            const breakStartDate = new Date(shift.breakStart.replace('Z', ''));
+            const breakStartTime = breakStartDate.toLocaleTimeString('de-DE');
+
+            let breakEndTime = null;
+            if (shift.breakEnd) {
+              const breakEndDate = new Date(shift.breakEnd.replace('Z', ''));
+              breakEndTime = breakEndDate.toLocaleTimeString('de-DE');
+            }
+
+            this.breakHistory.push({
+              startTime: breakStartTime,
+              endTime: breakEndTime
+            });
           }
 
           // Handle end time
@@ -142,10 +238,11 @@ export class HomepageComponent implements OnInit {
     const userId = this.userService.user.id;
     this.shiftService.startShift(userId).subscribe({
       next: (response) => {
-        console.log('Shift started:', response);
+        console.log('Shift started response:', response); // Debug log
         this.msg.addMessage('Schicht wurde gestartet');
-        // Store the current time
         this.activeShiftStart = new Date().toLocaleTimeString('de-DE');
+        this.currentShiftId = response.shiftId;  // Store the shift ID!
+        console.log('Current shift ID set to:', this.currentShiftId); // Debug log
       },
       error: (err) => {
         console.error('Error starting shift:', err);

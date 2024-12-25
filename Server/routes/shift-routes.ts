@@ -28,11 +28,8 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
     });
 };
 
-
 shiftRouter.post('/', verifyToken, (req: Request, res: Response): void => {
     const { userId } = req.body;
-
-    // Get current date and adjust for timezone
     const now = new Date();
     const offset = now.getTimezoneOffset();
     const localDate = new Date(now.getTime() - (offset * 60 * 1000));
@@ -56,6 +53,7 @@ shiftRouter.post('/', verifyToken, (req: Request, res: Response): void => {
         });
     });
 });
+
 // Get shifts for a specific user
 shiftRouter.get('/user/:userId', verifyToken, (req: Request, res: Response): void => {
     const userId = req.params.userId;
@@ -221,5 +219,79 @@ shiftRouter.get('/today/:userId', verifyToken, (req: Request, res: Response): vo
         } else {
             res.status(404).send({ message: 'No shift found for today' });
         }
+    });
+});
+
+// For starting a break
+shiftRouter.post('/break/start/:shiftId', verifyToken, (req: Request, res: Response): void => {
+    const shiftId = req.params.shiftId;
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+    const mysqlDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const query = `
+        INSERT INTO break (shift_id, breakStart)
+        VALUES (?, ?);
+    `;
+
+    pool.query(query, [shiftId, mysqlDateTime], (err, result) => {
+        if (err) {
+            console.error('Error starting break:', err);
+            res.status(500).send({ message: 'Error starting break' });
+            return;
+        }
+        res.status(201).send({
+            message: 'Break started successfully',
+            breakId: result.insertId,
+            breakStart: mysqlDateTime
+        });
+    });
+});
+
+// For ending a break
+shiftRouter.put('/break/end/:breakId', verifyToken, (req: Request, res: Response): void => {
+    const breakId = req.params.breakId;
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+    const mysqlDateTime = localDate.toISOString().slice(0, 19).replace('T', ' ');
+
+    const query = `
+        UPDATE break 
+        SET breakEnd = ? 
+        WHERE id = ?;
+    `;
+
+    pool.query(query, [mysqlDateTime, breakId], (err, result) => {
+        if (err) {
+            console.error('Error ending break:', err);
+            res.status(500).send({ message: 'Error ending break' });
+            return;
+        }
+        res.status(200).send({
+            message: 'Break ended successfully',
+            breakEnd: mysqlDateTime
+        });
+    });
+});
+
+// Get all breaks for a shift
+shiftRouter.get('/breaks/:shiftId', verifyToken, (req: Request, res: Response): void => {
+    const shiftId = req.params.shiftId;
+    const query = `
+        SELECT * 
+        FROM break 
+        WHERE shift_id = ?
+        ORDER BY breakStart;
+    `;
+
+    pool.query(query, [shiftId], (err, rows) => {
+        if (err) {
+            console.error('Error fetching breaks:', err);
+            res.status(500).send({ message: 'Error fetching breaks' });
+            return;
+        }
+        res.status(200).send(rows);
     });
 });
