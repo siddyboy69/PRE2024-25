@@ -151,14 +151,17 @@ shiftRouter.put('/end/:userId', verifyToken, (req, res) => {
 shiftRouter.get('/today/:userId', verifyToken, (req, res) => {
     const userId = req.params.userId;
     const query = `
-        SELECT *, 
-        DATE_FORMAT(shiftStart, '%Y-%m-%d %H:%i:%s') as formattedShiftStart,
-        DATE_FORMAT(shiftEnd, '%Y-%m-%d %H:%i:%s') as formattedShiftEnd
-        FROM shift 
-        WHERE user_id = ? 
-        AND DATE(shiftStart) = CURDATE()
-        ORDER BY shiftStart DESC 
-        LIMIT 1
+        SELECT s.*,
+               b.id as break_id,
+               b.breakStart as break_start,
+               b.breakEnd as break_end,
+               DATE_FORMAT(s.shiftStart, '%Y-%m-%d %H:%i:%s') as formattedShiftStart,
+               DATE_FORMAT(s.shiftEnd, '%Y-%m-%d %H:%i:%s') as formattedShiftEnd
+        FROM shift s
+        LEFT JOIN break b ON s.id = b.shift_id
+        WHERE s.user_id = ? 
+        AND DATE(s.shiftStart) = CURDATE()
+        ORDER BY s.shiftStart DESC, b.breakStart ASC;
     `;
 
     pool.query(query, [userId], (err, rows) => {
@@ -166,21 +169,30 @@ shiftRouter.get('/today/:userId', verifyToken, (req, res) => {
             console.error('Error fetching today shift:', err);
             return res.status(500).send({ message: 'Error fetching today shift' });
         }
+
         if (rows.length > 0) {
-            const shift = rows[0];
-            // Convert MySQL datetime to JS Date
-            const shiftStartDate = new Date(shift.formattedShiftStart + '');
-            const shiftEndDate = shift.formattedShiftEnd ? new Date(shift.formattedShiftEnd + '') : null;
+            // Gruppiere Pausen zur jeweiligen Schicht
+            const shift = {
+                id: rows[0].id,
+                user_id: rows[0].user_id,
+                shiftStart: rows[0].formattedShiftStart,
+                shiftEnd: rows[0].formattedShiftEnd,
+                breaks: rows
+                    .map(row => row.break_id ? {
+                        id: row.break_id,
+                        breakStart: row.break_start,
+                        breakEnd: row.break_end
+                    } : null)
+                    .filter(Boolean)
+            };
 
-            shift.shiftStart = shiftStartDate.toISOString();
-            shift.shiftEnd = shiftEndDate ? shiftEndDate.toISOString() : null;
-
-            res.status(200).send(shift);
+            return res.status(200).send(shift);
         } else {
-            res.status(404).send({ message: 'No shift found for today' });
+            return res.status(404).send({ message: 'No shift found for today' });
         }
     });
 });
+
 shiftRouter.post('/break/start/:shiftId', verifyToken, (req, res) => {
     const shiftId = req.params.shiftId;
     const now = new Date();

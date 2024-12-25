@@ -1,15 +1,14 @@
-  <nav class="navbar">
-    <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
-      <span class="hamburger-icon">&#9776;</span>
-    </div>
-    <div class="navbar-title">Zeitausgleich</div>
-    <div class="navbar-actions">
-      <button class="logout-button" (click)="logout()">Abmelden</button>
-    </div>
-  </nav>
+<nav class="navbar">
+  <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
+    <span class="hamburger-icon">&#9776;</span>
+  </div>
+  <div class="navbar-title">Zeitausgleich</div>
+  <div class="navbar-actions">
+    <button class="logout-button" (click)="logout()">Abmelden</button>
+  </div>
+</nav>
 
 <div class="container">
-
   <div class="content-wrapper">
     <aside class="sidebar" [class.sidebar-open]="isSidebarOpen">
       <div class="sidebar-search">
@@ -27,8 +26,8 @@
           class="add-icon"
           (click)="navigateToAddMitarbeiter()"
         >
-          ➕
-        </span>
+                    ➕
+                </span>
       </div>
       <ul class="user-list">
         <li
@@ -37,16 +36,16 @@
           (click)="employee.id !== -1 && onEmployeeClick(employee.id)"
           [class.active]="employee.id === selectedEmployeeId"
         >
-   <span class="user-name">
-    {{ (employee.firstname || 'No firstname') + ' ' + (employee.lastname || 'No lastname') }}
-   </span>
+                    <span class="user-name">
+                        {{ (employee.firstname || 'No firstname') + ' ' + (employee.lastname || 'No lastname') }}
+                    </span>
           <span
             *ngIf="isAdmin && isSidebarOpen && employee.id !== -1"
             class="delete-icon"
             (click)="deleteEmployee(employee.id, $event)"
           >
-      🗑️
-    </span>
+                        🗑️
+                    </span>
         </li>
       </ul>
     </aside>
@@ -102,19 +101,23 @@
           </div>
 
           <div class="shift-status">
-            <!-- Shift start -->
-            <p *ngIf="activeShiftStart">Schicht begonnen um: {{ activeShiftStart }}</p>
+            <div class="shift-container">
+              <div class="shift-timeline"></div>
+              <div class="times-container">
+                <p class="shift-start">Schicht begonnen um: {{ activeShiftStart }}</p>
 
-            <!-- Breaks -->
-            <ng-container *ngFor="let break of breaks">
-              <div class="break-info">
-                <p>Pause begonnen um: {{ break.breakStart | date:'HH:mm:ss' }}</p>
-                <p *ngIf="break.breakEnd">Pause beendet um: {{ break.breakEnd | date:'HH:mm:ss' }}</p>
+                <ng-container *ngFor="let break of breaks">
+                  <div class="break-container">
+                    <div class="break-info">
+                      <p>Pause begonnen um: {{ break.breakStart | date:'HH:mm:ss' }}</p>
+                      <p *ngIf="break.breakEnd">Pause beendet um: {{ break.breakEnd | date:'HH:mm:ss' }}</p>
+                    </div>
+                  </div>
+                </ng-container>
+
+                <p class="shift-end" *ngIf="activeShiftEnd">Schicht beendet um: {{ activeShiftEnd }}</p>
               </div>
-            </ng-container>
-
-
-            <p *ngIf="activeShiftEnd">Schicht beendet um: {{ activeShiftEnd }}</p>
+            </div>
           </div>
         </div>
 

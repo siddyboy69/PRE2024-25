@@ -54,7 +54,7 @@ shiftRouter.post('/', verifyToken, (req: Request, res: Response): void => {
     });
 });
 
-// Get shifts for a specific user
+
 shiftRouter.get('/user/:userId', verifyToken, (req: Request, res: Response): void => {
     const userId = req.params.userId;
     const query = `
@@ -190,30 +190,47 @@ shiftRouter.put('/end/:userId', verifyToken, (req: Request, res: Response): void
 shiftRouter.get('/today/:userId', verifyToken, (req: Request, res: Response): void => {
     const userId = req.params.userId;
     const query = `
-        SELECT *, 
-        DATE_FORMAT(shiftStart, '%Y-%m-%d %H:%i:%s') as formattedShiftStart,
-        DATE_FORMAT(shiftEnd, '%Y-%m-%d %H:%i:%s') as formattedShiftEnd
-        FROM shift 
-        WHERE user_id = ? 
-        AND DATE(shiftStart) = CURDATE()
-        ORDER BY shiftStart DESC 
-        LIMIT 1
+        SELECT s.*,
+               b.id as break_id,
+               b.breakStart as break_start,
+               b.breakEnd as break_end,
+               DATE_FORMAT(s.shiftStart, '%Y-%m-%d %H:%i:%s') as formattedShiftStart,
+               DATE_FORMAT(s.shiftEnd, '%Y-%m-%d %H:%i:%s') as formattedShiftEnd
+        FROM shift s
+        LEFT JOIN break b ON s.id = b.shift_id
+        WHERE s.user_id = ? 
+        AND DATE(s.shiftStart) = CURDATE()
+        ORDER BY s.shiftStart DESC, b.breakStart ASC
     `;
+    interface ShiftRow {
+        id: number;
+        user_id: number;
+        shiftStart: string;
+        shiftEnd: string | null;
+        break_id: number | null;
+        break_start: string | null;
+        break_end: string | null;
+        formattedShiftStart: string;
+        formattedShiftEnd: string | null;
+    }
 
-    pool.query(query, [userId], (err, rows) => {
+    pool.query(query, [userId], (err, rows: ShiftRow[]) => {
         if (err) {
             console.error('Error fetching today shift:', err);
             res.status(500).send({ message: 'Error fetching today shift' });
             return;
         }
-        if (rows.length > 0) {
-            const shift = rows[0];
-            // Convert MySQL datetime to JS Date
-            const shiftStartDate = new Date(shift.formattedShiftStart + '');
-            const shiftEndDate = shift.formattedShiftEnd ? new Date(shift.formattedShiftEnd + '') : null;
 
-            shift.shiftStart = shiftStartDate.toISOString();
-            shift.shiftEnd = shiftEndDate ? shiftEndDate.toISOString() : null;
+        if (rows.length > 0) {
+            // Group breaks by shift
+            const shift = {
+                ...rows[0],
+                breaks: rows.map((row: ShiftRow) => row.break_id ? {
+                    id: row.break_id,
+                    breakStart: row.break_start,
+                    breakEnd: row.break_end
+                } : null).filter(Boolean)
+            };
 
             res.status(200).send(shift);
         } else {

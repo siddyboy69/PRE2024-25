@@ -22,7 +22,17 @@ interface Shift {
   breakStart?: string;
   breakEnd?: string;
 }
-
+interface BreakItem {
+  id: number;
+  breakStart: string;
+  breakEnd: string | null;
+}
+interface ShiftResponse {
+  id: number;
+  shiftStart: string;
+  shiftEnd: string | null;
+  breaks: BreakItem[];
+}
 @Component({
   selector: 'app-homepage',
   standalone: true,
@@ -169,35 +179,41 @@ export class HomepageComponent implements OnInit {
   checkForActiveShift(): void {
     const userId = this.userService.user.id;
     this.shiftService.getTodayShift(userId).subscribe({
-      next: (shift) => {
+      next: (shift: ShiftResponse) => {
         if (shift) {
-          // Handle start time
+          // Handle shift times
           if (shift.shiftStart) {
             const shiftDate = new Date(shift.shiftStart.replace('Z', ''));
             this.activeShiftStart = shiftDate.toLocaleTimeString('de-DE');
+            this.currentShiftId = shift.id;
           }
 
-          // Handle break times
-          if (shift.breakStart) {
-            const breakStartDate = new Date(shift.breakStart.replace('Z', ''));
-            const breakStartTime = breakStartDate.toLocaleTimeString('de-DE');
-
-            let breakEndTime = null;
-            if (shift.breakEnd) {
-              const breakEndDate = new Date(shift.breakEnd.replace('Z', ''));
-              breakEndTime = breakEndDate.toLocaleTimeString('de-DE');
-            }
-
-            this.breakHistory.push({
-              startTime: breakStartTime,
-              endTime: breakEndTime
-            });
-          }
-
-          // Handle end time
           if (shift.shiftEnd) {
             const endDate = new Date(shift.shiftEnd.replace('Z', ''));
             this.activeShiftEnd = endDate.toLocaleTimeString('de-DE');
+          }
+
+          // Handle breaks
+          if (shift.breaks && shift.breaks.length > 0) {
+            this.breaks = shift.breaks.map((breakItem: BreakItem) => {
+              const breakStart = new Date(breakItem.breakStart.replace('Z', ''));
+              const breakEnd = breakItem.breakEnd ?
+                new Date(breakItem.breakEnd.replace('Z', '')) : null;
+
+              return new Break(
+                breakItem.id,
+                shift.id,
+                breakStart,
+                breakEnd
+              );
+            });
+
+            // Check if there's an active break
+            const activeBreak = this.breaks.find(b => !b.breakEnd);
+            if (activeBreak) {
+              this.currentBreakId = activeBreak.id;
+              this.isOnBreak = true;
+            }
           }
         }
       },
