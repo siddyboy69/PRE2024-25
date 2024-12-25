@@ -73,11 +73,28 @@
           <button class="nav-button nav-right" (click)="changeDate(1)">→</button>
         </div>
 
-        <div *ngIf="displayDate === 'Heute'" class="shift-actions">
-          <button class="shift-button">Schicht beginnen</button>
-          <button class="shift-button">Schicht beenden</button>
-          <button class="shift-button">Pause beginnen</button>
-          <button class="shift-button">Pause beenden</button>
+        <div *ngIf="displayDate === 'Heute'">
+          <div class="shift-actions">
+            <button class="shift-button"
+                    [disabled]="activeShiftStart !== null"
+                    [class.disabled]="activeShiftStart !== null"
+                    (click)="startShift()">
+              Schicht beginnen
+            </button>
+            <button class="shift-button"
+                    [disabled]="!activeShiftStart || activeShiftEnd !== null"
+                    [class.disabled]="!activeShiftStart || activeShiftEnd !== null"
+                    (click)="endShift()">
+              Schicht beenden
+            </button>
+            <button class="shift-button">Pause beginnen</button>
+            <button class="shift-button">Pause beenden</button>
+          </div>
+
+          <div class="shift-status">
+            <p *ngIf="activeShiftStart">Schicht begonnen um: {{ activeShiftStart }}</p>
+            <p *ngIf="activeShiftEnd">Schicht beendet um: {{ activeShiftEnd }}</p>
+          </div>
         </div>
 
         <div *ngIf="displayDate !== 'Heute'" class="no-shift-message">

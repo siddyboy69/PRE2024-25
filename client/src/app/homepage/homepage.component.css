@@ -311,3 +311,23 @@
   text-align: center;
   cursor: default;
 }
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.shift-status {
+  margin-top: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  font-size: 1.1rem;
+  padding-left: 10px;
+}
+.shift-button.disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+.shift-button.disabled:hover {
+  background-color: #cccccc;
+}

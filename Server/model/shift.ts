@@ -2,15 +2,14 @@ export class Shift {
     id: number;
     userId: number;
     shiftStart: Date;
-    shiftEnd: Date;
-    breakStart?: Date; // Optional
-    breakEnd?: Date;   // Optional
-
+    shiftEnd?: Date;
+    breakStart?: Date;
+    breakEnd?: Date;
     constructor(
         id: number,
         userId: number,
         shiftStart: Date,
-        shiftEnd: Date,
+        shiftEnd?: Date,
         breakStart?: Date,
         breakEnd?: Date
     ) {

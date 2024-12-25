@@ -31,7 +31,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Define routes
 app.use('/users', userRouter);          // User-related routes
-app.use('/shifts', shiftRouter);        // Shift-related routes (new)
+app.use('/shifts', shiftRouter);
 
 // Global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

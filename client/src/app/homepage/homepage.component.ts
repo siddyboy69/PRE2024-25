@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from '../../_service/message.service';
+import { ShiftService } from '../../_service/shift.service';
 
 interface Employee {
   id: number;
@@ -36,6 +37,8 @@ export class HomepageComponent implements OnInit {
   selectedEmployeeId: number | null = null;
   shifts: Shift[] = [];
   isSidebarOpen: boolean = false;
+  activeShiftStart: string | null = null;
+  activeShiftEnd: string | null = null;
 
   newShift: Shift = {
     shiftStart: '',
@@ -48,7 +51,8 @@ export class HomepageComponent implements OnInit {
     protected userService: UserService,
     private router: Router,
     private http: HttpClient,
-    private msg: MessageService
+    private msg: MessageService,
+    private shiftService: ShiftService
   ) {
     const storedUser = this.userService.loadUserFromLocalStorage();
     this.userService.user = storedUser;
@@ -64,8 +68,48 @@ export class HomepageComponent implements OnInit {
 
   ngOnInit(): void {
     this.updateDisplayDate();
+    if (!this.isAdmin) {
+      this.checkForActiveShift();
+    }
   }
+  endShift(): void {
+    const userId = this.userService.user.id;
+    this.shiftService.endShift(userId).subscribe({
+      next: (response) => {
+        console.log('Shift ended:', response);
+        this.msg.addMessage('Schicht wurde beendet');
+        this.activeShiftEnd = new Date().toLocaleTimeString('de-DE');
+      },
+      error: (err) => {
+        console.error('Error ending shift:', err);
+        this.msg.addMessage('Fehler beim Beenden der Schicht');
+      }
+    });
+  }
+  // In homepage.component.ts
+  checkForActiveShift(): void {
+    const userId = this.userService.user.id;
+    this.shiftService.getTodayShift(userId).subscribe({
+      next: (shift) => {
+        if (shift) {
+          // Handle start time
+          if (shift.shiftStart) {
+            const shiftDate = new Date(shift.shiftStart.replace('Z', ''));
+            this.activeShiftStart = shiftDate.toLocaleTimeString('de-DE');
+          }
 
+          // Handle end time
+          if (shift.shiftEnd) {
+            const endDate = new Date(shift.shiftEnd.replace('Z', ''));
+            this.activeShiftEnd = endDate.toLocaleTimeString('de-DE');
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Error checking shift:', err);
+      }
+    });
+  }
   deleteEmployee(employeeId: number, event: Event): void {
     event.stopPropagation();
     const confirmDelete = confirm('Sind Sie sicher, dass Sie diesen Mitarbeiter löschen möchten?');
@@ -94,7 +138,21 @@ export class HomepageComponent implements OnInit {
       }
     }
   }
-
+  startShift(): void {
+    const userId = this.userService.user.id;
+    this.shiftService.startShift(userId).subscribe({
+      next: (response) => {
+        console.log('Shift started:', response);
+        this.msg.addMessage('Schicht wurde gestartet');
+        // Store the current time
+        this.activeShiftStart = new Date().toLocaleTimeString('de-DE');
+      },
+      error: (err) => {
+        console.error('Error starting shift:', err);
+        this.msg.addMessage('Fehler beim Starten der Schicht');
+      }
+    });
+  }
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
