@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  database:
+    image: mariadb:latest
+    environment:
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'true'
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./server/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app-network
+
+  server:
+    build: ./server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+    environment:
+      - DATABASE_HOST=database
+    # Add this command to run the initialization script after server starts
+    command: >
+      sh -c "
+        echo 'Waiting for database to be ready...' &&
+        sleep 10 &&
+        npx ts-node initializeUsers.ts &&
+        node app.js
+      "
+    networks:
+      - app-network
+
+  client:
+    build: ./client
+    ports:
+      - "4200:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:

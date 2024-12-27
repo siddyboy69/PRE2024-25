@@ -102,9 +102,15 @@
 
           <div class="shift-status">
             <div class="shift-container">
-              <div class="shift-timeline"></div>
+              <!-- Only show timeline if shift has started -->
+              <div class="shift-timeline"
+                   [class.with-start-dot]="activeShiftStart && activeShiftEnd"
+                   [class.with-end-dot]="activeShiftEnd"
+                   *ngIf="activeShiftStart">
+              </div>
+
               <div class="times-container">
-                <p class="shift-start">Schicht begonnen um: {{ activeShiftStart }}</p>
+                <p class="shift-start" *ngIf="activeShiftStart">Schicht begonnen um: {{ activeShiftStart }}</p>
 
                 <ng-container *ngFor="let break of breaks">
                   <div class="break-container">

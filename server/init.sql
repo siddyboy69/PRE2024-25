@@ -31,3 +31,4 @@ CREATE TABLE break (
     PRIMARY KEY (id),
     FOREIGN KEY (shift_id) REFERENCES shift(id) ON DELETE CASCADE
 );
+
