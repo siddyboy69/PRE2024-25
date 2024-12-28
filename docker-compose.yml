@@ -14,28 +14,32 @@ services:
       - app-network
 
   server:
-    build: ./server
+    build: 
+      context: ./server
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
-    depends_on:
-      - database
+    volumes:
+      - ./server:/usr/src/app
+      - /usr/src/app/node_modules
     environment:
       - DATABASE_HOST=database
-    # Add this command to run the initialization script after server starts
-    command: >
-      sh -c "
-        echo 'Waiting for database to be ready...' &&
-        sleep 10 &&
-        npx ts-node initializeUsers.ts &&
-        node app.js
-      "
+      - NODE_ENV=development
+    depends_on:
+      - database
     networks:
       - app-network
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
     ports:
-      - "4200:80"
+      - "4200:4200"
+    volumes:
+      - ./client:/usr/src/app
+      - /usr/src/app/node_modules
+    command: npm start
     depends_on:
       - server
     networks:

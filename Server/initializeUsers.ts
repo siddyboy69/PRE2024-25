@@ -1,7 +1,7 @@
 import { pool } from "./config/db";
 import bcrypt from 'bcrypt';
 
-// Function to insert admin user
+
 async function insertAdminUser() {
     try {
         // Hash the admin password "admin"

@@ -148,6 +148,57 @@ export class ShiftService {
       catchError(this.handleError<any>('endBreak'))
     );
   }
+  getMonthlyShifts(userId: number, year: number, month: number): Observable<any> {
+    const url = `${this.apiUrl}/shifts/monthly/${userId}/${year}/${month}`;
+    return this.http.get<any>(url, { headers: this.getAuthHeaders() }).pipe(
+      map(shifts => {
+        return shifts.map((shift: any) => {
+          const shiftStart = new Date(shift.shiftStart);
+          const shiftEnd = shift.shiftEnd ? new Date(shift.shiftEnd) : null;
+          const breakDuration = this.calculateBreakDuration(shift.breaks);
+          const totalDuration = this.calculateTotalDuration(shiftStart, shiftEnd, breakDuration);
+
+          return {
+            date: shiftStart.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }),
+            day: shiftStart.toLocaleDateString('de-DE', { weekday: 'short' }),
+            total: this.formatDuration(totalDuration)
+          };
+        });
+      })
+    );
+  }
+
+  private calculateBreakDuration(breaks: any[]): number {
+    if (!breaks) return 0;
+    return breaks.reduce((total, breakItem) => {
+      if (breakItem.breakStart && breakItem.breakEnd) {
+        const start = new Date(breakItem.breakStart);
+        const end = new Date(breakItem.breakEnd);
+        return total + (end.getTime() - start.getTime());
+      }
+      return total;
+    }, 0);
+  }
+
+  private calculateTotalDuration(start: Date, end: Date | null, breakDuration: number): number {
+    if (!end) return 0;
+    return (end.getTime() - start.getTime()) - breakDuration;
+  }
+
+  private formatDuration(ms: number): string {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
+  getShiftForDate(userId: number, date: Date): Observable<any> {
+    const formattedDate = date.toISOString().split('T')[0];
+    return this.http.get<any>(`${this.apiUrl}/shifts/date/${userId}/${formattedDate}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(shift => console.log('Fetched shift for date:', shift)),
+      catchError(this.handleError<any>('getShiftForDate', null))
+    );
+  }
 }
 
 

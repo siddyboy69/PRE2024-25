@@ -1,0 +1,53 @@
+<div class="timesheet-container">
+  <div class="timesheet-header">
+    <div class="navigation-controls">
+      <button class="back-button" routerLink="/homepage">
+        Zurück zur Übersicht
+      </button>
+      <div class="month-navigation">
+        <button class="nav-button nav-left" (click)="changeMonth(-1)">←</button>
+        <h2>{{ currentMonth }}</h2>
+        <button class="nav-button nav-right" (click)="changeMonth(1)">→</button>
+      </div>
+    </div>
+  </div>
+
+  <table class="timesheet-table">
+    <thead>
+    <tr>
+      <th>Datum</th>
+      <th>Tag</th>
+      <th>Summe</th>
+      <th>Anmerkungen</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let record of records; let last = last" [class.week-separator]="record.date.endsWith('Fri')">
+      <td>{{ record.date }}</td>
+      <td>{{ record.day }}</td>
+      <td>{{ record.total }}</td>
+      <td>{{ record.dayNotes }}</td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="4" class="summary-separator"></td>
+    </tr>
+    <tr>
+      <td colspan="2">Gesamt:</td>
+      <td>{{ totalHours }}</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td colspan="2">Tage:</td>
+      <td>{{ totalDays }}</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td colspan="2">Durchschnitt:</td>
+      <td>{{ averageHours }}</td>
+      <td></td>
+    </tr>
+    </tfoot>
+  </table>
+</div>

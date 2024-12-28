@@ -11,7 +11,7 @@ export const shiftRouter = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 's3cureP@ssW0rd12345!';
 
 const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
-    const token = req.headers['authorization']?.split(' ')[1];
+    const token = req.headers['authorization']?.split(' ')[1];  // Add space between quotes here
 
     if (!token) {
         res.status(403).send({ message: 'No token provided!' });
@@ -310,5 +310,46 @@ shiftRouter.get('/breaks/:shiftId', verifyToken, (req: Request, res: Response): 
             return;
         }
         res.status(200).send(rows);
+    });
+});
+
+shiftRouter.get('/date/:userId/:date', verifyToken, (req: Request, res: Response): void => {
+    const { userId, date } = req.params;
+    const query = `
+        SELECT s.*, b.id as break_id, b.breakStart, b.breakEnd
+        FROM shift s
+        LEFT JOIN break b ON s.id = b.shift_id
+        WHERE s.user_id = ?
+        AND DATE(s.shiftStart) = DATE(?)
+        ORDER BY s.shiftStart ASC;
+    `;
+
+    pool.query(query, [userId, date], (err, rows) => {
+        if (err) {
+            console.error('Error fetching shift:', err);
+            res.status(500).send({ message: 'Error fetching shift' });
+            return;
+        }
+
+        if (rows.length === 0) {
+            res.status(200).send(null);
+            return;
+        }
+
+        // Group breaks by shift
+        const shift = {
+            id: rows[0].id,
+            shiftStart: rows[0].shiftStart,
+            shiftEnd: rows[0].shiftEnd,
+            breaks: rows
+                .filter(row => row.break_id)
+                .map(row => ({
+                    id: row.break_id,
+                    breakStart: row.breakStart,
+                    breakEnd: row.breakEnd
+                }))
+        };
+
+        res.status(200).send(shift);
     });
 });

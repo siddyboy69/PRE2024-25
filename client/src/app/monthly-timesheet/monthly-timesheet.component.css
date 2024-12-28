@@ -1,0 +1,100 @@
+.timesheet-container {
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin: 20px;
+}
+
+.timesheet-header {
+  margin-bottom: 20px;
+}
+
+.timesheet-header h2 {
+  color: #333;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.timesheet-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.timesheet-table th {
+  background-color: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.timesheet-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.week-separator td {
+  border-bottom: 2px solid #dee2e6;
+}
+
+.summary-separator {
+  border-bottom: 2px solid #dee2e6;
+  padding: 8px 0;
+}
+
+tfoot td {
+  font-weight: bold;
+}
+
+tr:hover {
+  background-color: #f8f9fa;
+}
+.month-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.nav-button {
+  background-color: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #444;
+  transition: color 0.3s ease;
+}
+
+.nav-button:hover {
+  color: #A7D46C;
+}
+
+.month-navigation h2 {
+  margin: 0;
+  min-width: 150px;
+  text-align: center;
+}
+.navigation-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.back-button {
+  background-color: #A7D46C;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.back-button:hover {
+  background-color: #92C257;
+}

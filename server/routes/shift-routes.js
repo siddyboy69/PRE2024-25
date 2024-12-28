@@ -4,6 +4,7 @@ const { pool } = require("../config/db");
 const { Shift } = require("../model/shift");
 const { User } = require("../model/user");
 const jwt = require('jsonwebtoken');
+const {Request, Response} = require("express");
 
 const shiftRouter = express.Router();
 exports.shiftRouter = shiftRouter;
@@ -284,5 +285,88 @@ shiftRouter.get('/breaks/:shiftId', verifyToken, (req, res) => {
             return res.status(500).send({ message: 'Error fetching breaks' });
         }
         res.status(200).send(rows);
+    });
+});
+shiftRouter.get('/monthly/:userId/:year/:month', verifyToken, (req, res) => {
+    const { userId, year, month } = req.params;
+    const query = `
+        SELECT s.*, b.id as break_id, b.breakStart, b.breakEnd
+        FROM shift s
+        LEFT JOIN break b ON s.id = b.shift_id
+        WHERE s.user_id = ?
+        AND YEAR(s.shiftStart) = ?
+        AND MONTH(s.shiftStart) = ?
+        ORDER BY s.shiftStart ASC;
+    `;
+
+    pool.query(query, [userId, year, month], (err, rows) => {
+        if (err) {
+            console.error('Error fetching monthly shifts:', err);
+            return res.status(500).send({ message: 'Error fetching monthly shifts' });
+        }
+
+        // Gruppiere Pausen nach Schicht
+        const shifts = [];
+        const shiftsMap = new Map();
+
+        rows.forEach(row => {
+            if (!shiftsMap.has(row.id)) {
+                shiftsMap.set(row.id, {
+                    id: row.id,
+                    shiftStart: row.shiftStart,
+                    shiftEnd: row.shiftEnd,
+                    breaks: []
+                });
+                shifts.push(shiftsMap.get(row.id));
+            }
+
+            if (row.break_id) {
+                shiftsMap.get(row.id).breaks.push({
+                    id: row.break_id,
+                    breakStart: row.breakStart,
+                    breakEnd: row.breakEnd
+                });
+            }
+        });
+
+        res.status(200).send(shifts);
+    });
+});
+shiftRouter.get('/date/:userId/:date', verifyToken, (req, res) => {
+    const { userId, date } = req.params;
+    const query = `
+        SELECT s.*, b.id as break_id, b.breakStart, b.breakEnd
+        FROM shift s
+        LEFT JOIN break b ON s.id = b.shift_id
+        WHERE s.user_id = ?
+        AND DATE(s.shiftStart) = DATE(?)
+        ORDER BY s.shiftStart ASC;
+    `;
+
+    pool.query(query, [userId, date], (err, rows) => {
+        if (err) {
+            console.error('Error fetching shift:', err);
+            return res.status(500).send({ message: 'Error fetching shift' });
+        }
+
+        if (rows.length === 0) {
+            return res.status(200).send(null);
+        }
+
+        // Gruppiere Pausen für die Schicht
+        const shift = {
+            id: rows[0].id,
+            shiftStart: rows[0].shiftStart,
+            shiftEnd: rows[0].shiftEnd,
+            breaks: rows
+                .filter(row => row.break_id)
+                .map(row => ({
+                    id: row.break_id,
+                    breakStart: row.breakStart,
+                    breakEnd: row.breakEnd
+                }))
+        };
+
+        res.status(200).send(shift);
     });
 });

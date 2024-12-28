@@ -1,13 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../_service/user.service';
-import { Router } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MessageService } from '../../_service/message.service';
 import { ShiftService } from '../../_service/shift.service';
 import {Break} from '../../_model/break';
 import {BreakService} from '../../_service/break.service';
+import {Observable, of} from 'rxjs';
+import {catchError, tap} from 'rxjs/operators';
+import {MatIconModule} from '@angular/material/icon';
+import {MatDatepickerModule} from '@angular/material/datepicker';
+import {MatNativeDateModule} from '@angular/material/core';
 
 interface Employee {
   id: number;
@@ -36,7 +41,7 @@ interface ShiftResponse {
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatNativeDateModule, MatDatepickerModule],
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css']
 })
@@ -65,7 +70,7 @@ export class HomepageComponent implements OnInit {
     breakStart: '',
     breakEnd: ''
   };
-
+  private apiUrl = 'http://localhost:3000';
   constructor(
     protected userService: UserService,
     private router: Router,
@@ -92,6 +97,7 @@ export class HomepageComponent implements OnInit {
       this.checkForActiveShift();
     }
   }
+
   startBreak(): void {
     console.log('Starting break, currentShiftId:', this.currentShiftId); // Debug log
 
@@ -178,7 +184,7 @@ export class HomepageComponent implements OnInit {
 
   checkForActiveShift(): void {
     const userId = this.userService.user.id;
-    this.shiftService.getTodayShift(userId).subscribe({
+    this.shiftService.getShiftForDate(userId, this.currentDate).subscribe({
       next: (shift: ShiftResponse) => {
         if (shift) {
           // Handle shift times
@@ -215,10 +221,17 @@ export class HomepageComponent implements OnInit {
               this.isOnBreak = true;
             }
           }
+        } else {
+          // Reset states when no shift is found
+          this.activeShiftStart = null;
+          this.activeShiftEnd = null;
+          this.breaks = [];
+          this.currentShiftId = null;
+          this.isOnBreak = false;
         }
       },
-      error: (err) => {
-        console.error('Error checking shift:', err);
+      error: (error: Error) => {
+        console.error('Error checking shift:', error);
       }
     });
   }
@@ -303,6 +316,29 @@ export class HomepageComponent implements OnInit {
     newDate.setDate(newDate.getDate() + direction);
     this.currentDate = newDate;
     this.updateDisplayDate();
+    if (!this.isAdmin) {
+      this.checkForActiveShift();  // Add this line
+    }
+  }
+  getShiftForDate(userId: number, date: Date): Observable<any> {
+    const formattedDate = date.toISOString().split('T')[0];
+    return this.http.get<any>(`${this.apiUrl}/shifts/date/${userId}/${formattedDate}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(shift => console.log('Fetched shift for date:', shift)),
+      catchError(this.handleError<any>('getShiftForDate', null))
+    );
+  }
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('auth_token');
+    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+  }
+  private handleError<T>(operation = 'operation', result?: T) {
+    return (error: any): Observable<T> => {
+      console.error(`${operation} failed:`, error);
+      this.msg.addMessage(`${operation} fehlgeschlagen`);
+      return of(result as T);
+    };
   }
 
   private updateDisplayDate(): void {
@@ -382,5 +418,14 @@ export class HomepageComponent implements OnInit {
         console.error('Error generating report:', err);
       }
     });
+  }
+  onDateSelected(date: Date | null): void {
+    if (date) {
+      this.currentDate = date;
+      this.updateDisplayDate();
+      if (!this.isAdmin) {
+        this.checkForActiveShift();
+      }
+    }
   }
 }

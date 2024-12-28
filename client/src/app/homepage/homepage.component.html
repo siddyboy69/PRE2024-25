@@ -4,6 +4,7 @@
   </div>
   <div class="navbar-title">Zeitausgleich</div>
   <div class="navbar-actions">
+    <button class="timesheet-button" [routerLink]="['/monthly-timesheet']" *ngIf="!isAdmin">Monat</button>
     <button class="logout-button" (click)="logout()">Abmelden</button>
   </div>
 </nav>
@@ -68,7 +69,17 @@
       <section *ngIf="!isAdmin" class="employee-shifts">
         <div class="date-navigation">
           <button class="nav-button nav-left" (click)="changeDate(-1)">←</button>
-          <h2>{{ displayDate }}</h2>
+          <div class="date-selector">
+            <h2>{{ displayDate }}</h2>
+            <button class="calendar-button" (click)="picker.open()">
+              <mat-icon>calendar_today</mat-icon>
+            </button>
+            <mat-datepicker
+              #picker
+              (selectedChange)="onDateSelected($event)"
+              [startAt]="currentDate">
+            </mat-datepicker>
+          </div>
           <button class="nav-button nav-right" (click)="changeDate(1)">→</button>
         </div>
 
@@ -99,36 +110,39 @@
               Pause beenden
             </button>
           </div>
-
-          <div class="shift-status">
-            <div class="shift-container">
-              <!-- Only show timeline if shift has started -->
-              <div class="shift-timeline"
-                   [class.with-start-dot]="activeShiftStart && activeShiftEnd"
-                   [class.with-end-dot]="activeShiftEnd"
-                   *ngIf="activeShiftStart">
-              </div>
-
-              <div class="times-container">
-                <p class="shift-start" *ngIf="activeShiftStart">Schicht begonnen um: {{ activeShiftStart }}</p>
-
-                <ng-container *ngFor="let break of breaks">
-                  <div class="break-container">
-                    <div class="break-info">
-                      <p>Pause begonnen um: {{ break.breakStart | date:'HH:mm:ss' }}</p>
-                      <p *ngIf="break.breakEnd">Pause beendet um: {{ break.breakEnd | date:'HH:mm:ss' }}</p>
-                    </div>
-                  </div>
-                </ng-container>
-
-                <p class="shift-end" *ngIf="activeShiftEnd">Schicht beendet um: {{ activeShiftEnd }}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <div *ngIf="displayDate !== 'Heute'" class="no-shift-message">
-          <p>An diesem Tag sind keine aktiven Schichten verfügbar.</p>
+        <!-- This is the section we want to keep -->
+        <div class="shift-status">
+          <div class="shift-container" *ngIf="activeShiftStart">
+            <div class="shift-timeline"
+                 [class.with-start-dot]="activeShiftStart && activeShiftEnd"
+                 [class.with-end-dot]="activeShiftEnd">
+            </div>
+
+            <div class="times-container">
+              <p class="shift-start" *ngIf="activeShiftStart">
+                Schicht begonnen um: {{ activeShiftStart }}
+              </p>
+
+              <ng-container *ngFor="let break of breaks">
+                <div class="break-container">
+                  <div class="break-info">
+                    <p>Pause begonnen um: {{ break.breakStart | date:'HH:mm:ss' }}</p>
+                    <p *ngIf="break.breakEnd">Pause beendet um: {{ break.breakEnd | date:'HH:mm:ss' }}</p>
+                  </div>
+                </div>
+              </ng-container>
+
+              <p class="shift-end" *ngIf="activeShiftEnd">
+                Schicht beendet um: {{ activeShiftEnd }}
+              </p>
+            </div>
+          </div>
+
+          <div *ngIf="!activeShiftStart" class="no-shift-message">
+            <p>An diesem Tag sind keine aktiven Schichten verfügbar.</p>
+          </div>
         </div>
       </section>
 

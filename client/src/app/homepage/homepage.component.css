@@ -496,3 +496,55 @@
   font-size: 1.1rem;
   color: #333;
 }
+.timesheet-button {
+  background-color: #A7D46C;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.timesheet-button:hover {
+  background-color: #92C257;
+}
+.date-selector {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.calendar-button {
+  background: none;
+  border: none;
+  color: #A7D46C;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.calendar-button:hover {
+  color: #92C257;
+}
+
+.calendar-button mat-icon {
+  font-size: 20px;
+}
+
+/* Override Material styles to match your theme */
+::ng-deep .mat-calendar {
+  background-color: white !important;
+}
+
+::ng-deep .mat-calendar-body-selected {
+  background-color: #A7D46C !important;
+}
+
+::ng-deep .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border-color: #A7D46C !important;
+}
