@@ -13,6 +13,7 @@ import {catchError, tap} from 'rxjs/operators';
 import {MatIconModule} from '@angular/material/icon';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatNativeDateModule} from '@angular/material/core';
+import {MatInputModule} from '@angular/material/input';
 
 interface Employee {
   id: number;
@@ -41,7 +42,7 @@ interface ShiftResponse {
 @Component({
   selector: 'app-homepage',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatNativeDateModule, MatDatepickerModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatNativeDateModule, MatDatepickerModule, MatInputModule],
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css']
 })

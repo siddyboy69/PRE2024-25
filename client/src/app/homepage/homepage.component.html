@@ -74,9 +74,12 @@
             <button class="calendar-button" (click)="picker.open()">
               <mat-icon>calendar_today</mat-icon>
             </button>
+            <input
+              [matDatepicker]="picker"
+              (dateChange)="onDateSelected($event.value)"
+              style="display: none">
             <mat-datepicker
               #picker
-              (selectedChange)="onDateSelected($event)"
               [startAt]="currentDate">
             </mat-datepicker>
           </div>
