@@ -4,7 +4,7 @@
   </div>
   <div class="navbar-title">Zeitausgleich</div>
   <div class="navbar-actions">
-    <button class="timesheet-button" [routerLink]="['/monthly-timesheet']" *ngIf="!isAdmin">Monat</button>
+    <button class="timesheet-button" [routerLink]="['/monthly-overview']" *ngIf="!isAdmin">Monat</button>
     <button class="logout-button" (click)="logout()">Abmelden</button>
   </div>
 </nav>

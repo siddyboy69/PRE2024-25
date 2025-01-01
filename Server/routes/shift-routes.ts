@@ -357,3 +357,102 @@ shiftRouter.get('/date/:userId/:date', verifyToken, (req: Request, res: Response
         res.status(200).send(shift);
     });
 });
+shiftRouter.get('/monthly-stats/:userId/:year/:month', verifyToken, (req: Request, res: Response): void => {
+    const { userId, year, month } = req.params;
+
+    const query = `
+        SELECT 
+            s.id as shift_id,
+            DATE(s.shiftStart) as shift_date,
+            s.shiftStart,
+            s.shiftEnd,
+            b.breakStart,
+            b.breakEnd
+        FROM shift s
+        LEFT JOIN break b ON s.id = b.shift_id
+        WHERE s.user_id = ?
+        AND YEAR(s.shiftStart) = ?
+        AND MONTH(s.shiftStart) = ?
+        ORDER BY s.shiftStart ASC;
+    `;
+
+    pool.query(query, [userId, year, month], (err, rows) => {
+        if (err) {
+            console.error('Error fetching monthly stats:', err);
+            return res.status(500).send({ message: 'Error fetching monthly stats' });
+        }
+
+        // Group shifts by date
+        const shiftsByDate = new Map();
+
+        rows.forEach((row: any) => {
+            const shiftDate = row.shift_date.toISOString().split('T')[0];
+
+            if (!shiftsByDate.has(shiftDate)) {
+                shiftsByDate.set(shiftDate, {
+                    shifts: [],
+                    breaks: []
+                });
+            }
+
+            const dateData = shiftsByDate.get(shiftDate);
+
+            // Add shift if not already added
+            if (!dateData.shifts.find((s: any) => s.id === row.shift_id)) {
+                dateData.shifts.push({
+                    id: row.shift_id,
+                    start: row.shiftStart,
+                    end: row.shiftEnd
+                });
+            }
+
+            // Add break if exists
+            if (row.breakStart && row.breakEnd) {
+                dateData.breaks.push({
+                    start: row.breakStart,
+                    end: row.breakEnd
+                });
+            }
+        });
+
+        // Calculate statistics
+        let totalWorkMinutes = 0;
+        let totalBreakMinutes = 0;
+        const dailyStats = [];
+
+        shiftsByDate.forEach((dateData, date) => {
+            const dayWorkMinutes = dateData.shifts.reduce((total: number, shift: any) => {
+                if (shift.start && shift.end) {
+                    return total + (new Date(shift.end).getTime() - new Date(shift.start).getTime()) / 60000;
+                }
+                return total;
+            }, 0);
+
+            const dayBreakMinutes = dateData.breaks.reduce((total: number, breakPeriod: any) => {
+                return total + (new Date(breakPeriod.end).getTime() - new Date(breakPeriod.start).getTime()) / 60000;
+            }, 0);
+
+            totalWorkMinutes += dayWorkMinutes;
+            totalBreakMinutes += dayBreakMinutes;
+
+            dailyStats.push({
+                date,
+                hoursWorked: Math.round((dayWorkMinutes - dayBreakMinutes) / 60 * 100) / 100,
+                breakMinutes: Math.round(dayBreakMinutes),
+                shiftStart: dateData.shifts[0]?.start,
+                shiftEnd: dateData.shifts[0]?.end
+            });
+        });
+
+        const stats = {
+            totalWorkDays: shiftsByDate.size,
+            totalWorkHours: Math.round(totalWorkMinutes / 60 * 100) / 100,
+            totalBreakMinutes: Math.round(totalBreakMinutes),
+            averageShiftLength: Math.round(totalWorkMinutes / shiftsByDate.size / 60 * 100) / 100,
+            daysWithShifts: Array.from(shiftsByDate.keys()),
+            dailyStats
+        };
+
+        res.status(200).send(stats);
+    });
+});

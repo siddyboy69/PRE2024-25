@@ -5,6 +5,8 @@ import { catchError, tap } from 'rxjs/operators';
 import { Shift } from '../_model/shift';
 import { MessageService } from './message.service';
 import { map } from 'rxjs/operators';
+import {MonthlyStats} from '../_model/monthly-stats';
+
 
 @Injectable({
   providedIn: 'root'
@@ -225,6 +227,15 @@ export class ShiftService {
         };
       }),
       catchError(this.handleError<any>('getShiftForDate', null))
+    );
+  }
+  getMonthlyStats(userId: number, year: number, month: number): Observable<MonthlyStats> {
+    return this.http.get<MonthlyStats>(
+      `${this.apiUrl}/shifts/monthly-stats/${userId}/${year}/${month}`,
+      { headers: this.getAuthHeaders() }
+    ).pipe(
+      tap(stats => console.log('Fetched monthly stats:', stats)),
+      catchError(this.handleError<MonthlyStats>('getMonthlyStats'))
     );
   }
 }

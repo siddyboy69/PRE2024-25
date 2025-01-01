@@ -1,0 +1,59 @@
+<div class="monthly-overview">
+  <button class="back-button" [routerLink]="['/homepage']">Zurück zur Homepage</button>
+  <div class="header">
+    <h2>Monatsübersicht</h2>
+    <div class="month-selector">
+      <button (click)="changeMonth(-1)">&lt;</button>
+      <span>{{ selectedMonth }}/{{ selectedYear }}</span>
+      <button (click)="changeMonth(1)">&gt;</button>
+    </div>
+  </div>
+
+  <div class="stats-container" *ngIf="currentStats && !isLoading">
+    <div class="summary-stats">
+      <div class="stat-card">
+        <h3>Arbeitstage</h3>
+        <p>{{ currentStats.totalWorkDays }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Arbeitsstunden</h3>
+        <p>{{ currentStats.totalWorkHours }}h</p>
+      </div>
+      <div class="stat-card">
+        <h3>Pausenzeit</h3>
+        <p>{{ formatDuration(currentStats.totalBreakMinutes) }}</p>
+      </div>
+      <div class="stat-card">
+        <h3>Ø Schichtlänge</h3>
+        <p>{{ currentStats.averageShiftLength }}h</p>
+      </div>
+    </div>
+
+    <div class="daily-stats">
+      <table>
+        <thead>
+        <tr>
+          <th>Datum</th>
+          <th>Arbeitszeit</th>
+          <th>Pause</th>
+          <th>von</th>
+          <th>bis</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let day of currentStats.dailyStats">
+          <td>{{ day.date | date:'dd.MM.yyyy' }}</td>
+          <td>{{ day.hoursWorked }}h</td>
+          <td>{{ formatDuration(day.breakMinutes) }}</td>
+          <td>{{ day.shiftStart | date:'HH:mm' }}</td>
+          <td>{{ day.shiftEnd | date:'HH:mm' }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    Lade Daten...
+  </div>
+</div>

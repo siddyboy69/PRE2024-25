@@ -1,0 +1,205 @@
+/* Main container */
+.monthly-overview {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 60px);
+  position: relative;  /* Added for absolute positioning of back button */
+}
+
+/* Back button */
+.back-button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #A7D46C;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-weight: 500;
+  position: absolute;  /* Position absolutely */
+  left: 30px;         /* Align with container padding */
+  top: 30px;         /* Align with container padding */
+}
+
+.back-button:hover {
+  background-color: #92C257;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(167, 212, 108, 0.3);
+}
+
+/* Header section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  margin-top: 70px;  /* Add space for back button */
+}
+
+h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* Month selector */
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background-color: #f8f9fa;
+  padding: 5px;
+  border-radius: 6px;
+}
+
+.month-selector button {
+  padding: 10px 20px;
+  border: none;
+  background-color: #A7D46C;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(167, 212, 108, 0.2);
+}
+
+.month-selector button:hover {
+  background-color: #92C257;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(167, 212, 108, 0.3);
+}
+
+.month-selector span {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Stats container */
+.stats-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Summary stats cards */
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background-color: #f8f9fa;
+  padding: 25px;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card h3 {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.stat-card p {
+  margin: 15px 0 0;
+  font-size: 1.8rem;
+  color: #A7D46C;
+  font-weight: 600;
+}
+
+/* Table styles */
+.daily-stats table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.daily-stats th,
+.daily-stats td {
+  padding: 15px;
+  text-align: left;
+}
+
+.daily-stats th {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 2px solid #eee;
+}
+
+.daily-stats td {
+  border-bottom: 1px solid #eee;
+}
+
+.daily-stats tr:hover td {
+  background-color: #f8f9fa;
+}
+
+.daily-stats tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: 60px;
+  color: #666;
+  font-size: 1.1rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .monthly-overview {
+    padding: 15px;
+  }
+
+  .back-button {
+    left: 15px;
+    top: 15px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 60px;  /* Adjusted for smaller screens */
+  }
+
+  .month-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .summary-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-stats {
+    overflow-x: auto;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+}

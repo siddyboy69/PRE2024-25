@@ -236,12 +236,12 @@
   background-color: #A7D46C;
   color: white;
   border: none;
-  padding: 10px 15px;
-  margin-right: 10px;
-  margin-bottom: 10px;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  margin-right: 15px;
+  height: 31px;
 }
 
 .admin-action-button:hover,
@@ -503,8 +503,9 @@
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  margin-right: 15px;
   transition: background-color 0.3s ease;
+  margin-right: 15px;
+  height: 31px;
 }
 
 .timesheet-button:hover {
