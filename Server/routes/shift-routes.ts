@@ -316,40 +316,44 @@ shiftRouter.get('/breaks/:shiftId', verifyToken, (req: Request, res: Response): 
 shiftRouter.get('/date/:userId/:date', verifyToken, (req: Request, res: Response): void => {
     const { userId, date } = req.params;
     const query = `
-        SELECT s.*, b.id as break_id, b.breakStart, b.breakEnd
+        SELECT s.*, 
+               DATE_FORMAT(s.shiftStart, '%Y-%m-%d %H:%i:%s') as formattedShiftStart,
+               DATE_FORMAT(s.shiftEnd, '%Y-%m-%d %H:%i:%s') as formattedShiftEnd,
+               b.id as break_id, 
+               DATE_FORMAT(b.breakStart, '%Y-%m-%d %H:%i:%s') as formattedBreakStart,
+               DATE_FORMAT(b.breakEnd, '%Y-%m-%d %H:%i:%s') as formattedBreakEnd
         FROM shift s
         LEFT JOIN break b ON s.id = b.shift_id
         WHERE s.user_id = ?
         AND DATE(s.shiftStart) = DATE(?)
-        ORDER BY s.shiftStart ASC;
+        ORDER BY s.shiftStart ASC, b.breakStart ASC;
     `;
 
     pool.query(query, [userId, date], (err, rows) => {
         if (err) {
             console.error('Error fetching shift:', err);
-            res.status(500).send({ message: 'Error fetching shift' });
-            return;
+            return res.status(500).send({ message: 'Error fetching shift' });
         }
 
         if (rows.length === 0) {
-            res.status(200).send(null);
-            return;
+            return res.status(200).send(null);
         }
 
-        // Group breaks by shift
+        // Group all breaks for the shift
         const shift = {
             id: rows[0].id,
-            shiftStart: rows[0].shiftStart,
-            shiftEnd: rows[0].shiftEnd,
+            shiftStart: rows[0].formattedShiftStart,
+            shiftEnd: rows[0].formattedShiftEnd,
             breaks: rows
                 .filter(row => row.break_id)
                 .map(row => ({
                     id: row.break_id,
-                    breakStart: row.breakStart,
-                    breakEnd: row.breakEnd
+                    breakStart: row.formattedBreakStart,
+                    breakEnd: row.formattedBreakEnd
                 }))
         };
 
+        console.log('Sending shift with breaks:', shift);
         res.status(200).send(shift);
     });
 });

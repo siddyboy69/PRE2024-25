@@ -191,11 +191,39 @@ export class ShiftService {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
   getShiftForDate(userId: number, date: Date): Observable<any> {
-    const formattedDate = date.toISOString().split('T')[0];
-    return this.http.get<any>(`${this.apiUrl}/shifts/date/${userId}/${formattedDate}`,
+    const formattedDate = date.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+
+    return this.http.get<any>(
+      `${this.apiUrl}/shifts/date/${userId}/${formattedDate}`,
       { headers: this.getAuthHeaders() }
     ).pipe(
-      tap(shift => console.log('Fetched shift for date:', shift)),
+      tap(shift => {
+        console.log('Received raw shift data:', shift);
+      }),
+      map(shift => {
+        if (!shift) return null;
+
+        const parseDateTime = (dateTimeStr: string) => {
+          if (!dateTimeStr) return null;
+          const date = new Date(dateTimeStr);
+          return date.toLocaleTimeString('de-DE', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          });
+        };
+
+        return {
+          id: shift.id,
+          shiftStart: parseDateTime(shift.shiftStart),
+          shiftEnd: parseDateTime(shift.shiftEnd),
+          breaks: shift.breaks.map((breakItem: any) => ({
+            id: breakItem.id,
+            breakStart: new Date(breakItem.breakStart),
+            breakEnd: breakItem.breakEnd ? new Date(breakItem.breakEnd) : null
+          }))
+        };
+      }),
       catchError(this.handleError<any>('getShiftForDate', null))
     );
   }

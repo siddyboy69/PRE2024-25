@@ -27,8 +27,8 @@
           class="add-icon"
           (click)="navigateToAddMitarbeiter()"
         >
-                    ➕
-                </span>
+          ➕
+        </span>
       </div>
       <ul class="user-list">
         <li
@@ -37,16 +37,16 @@
           (click)="employee.id !== -1 && onEmployeeClick(employee.id)"
           [class.active]="employee.id === selectedEmployeeId"
         >
-                    <span class="user-name">
-                        {{ (employee.firstname || 'No firstname') + ' ' + (employee.lastname || 'No lastname') }}
-                    </span>
+          <span class="user-name">
+            {{ (employee.firstname || 'No firstname') + ' ' + (employee.lastname || 'No lastname') }}
+          </span>
           <span
             *ngIf="isAdmin && isSidebarOpen && employee.id !== -1"
             class="delete-icon"
             (click)="deleteEmployee(employee.id, $event)"
           >
-                        🗑️
-                    </span>
+            🗑️
+          </span>
         </li>
       </ul>
     </aside>
@@ -115,7 +115,6 @@
           </div>
         </div>
 
-        <!-- This is the section we want to keep -->
         <div class="shift-status">
           <div class="shift-container" *ngIf="activeShiftStart">
             <div class="shift-timeline"
