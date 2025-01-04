@@ -24,7 +24,10 @@
         />
       </div>
 
-      <!-- Conditionally disable the login button based on isButtonDisabled flag -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
       <div class="form-group">
         <button
           mat-raised-button
@@ -34,10 +37,6 @@
         >
           Login
         </button>
-      </div>
-
-      <div class="error-message">
-        {{ errorMessage }}
       </div>
     </form>
   </div>

@@ -64,25 +64,29 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
             return;
         }
 
+        // Check if username exists
         if (rows.length === 0) {
-            res.status(400).send({ message: 'Username does not exist' });
+            res.status(401).send({ message: 'The username is incorrect.' }); // Custom error message
             return;
         }
 
         const user = rows[0];
         const isPasswordMatch = await bcrypt.compare(req.body.password, user.password);
 
+        // Check if password matches
         if (!isPasswordMatch) {
-            res.status(400).send({ message: 'Password is incorrect' });
+            res.status(401).send({ message: 'The password is incorrect.' }); // Custom error message
             return;
         }
 
+        // Generate JWT Token
         const token = jwt.sign(
             { id: user.id, username: user.username, isAdmin: user.is_admin },
             JWT_SECRET,
             { expiresIn: '1h' }
         );
 
+        // Create User object
         const data = new User(
             user.id,
             user.uuid,
@@ -94,9 +98,11 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
             user.sex
         );
 
+        // Return success response
         res.status(200).send({ user: data, token });
     });
 });
+
 
 // Registration route
 userRouter.post('/register/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {

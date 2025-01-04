@@ -62,15 +62,34 @@ button[mat-raised-button]:hover {
 }
 
 button[mat-raised-button]:disabled {
-  background-color: #ddd !important; /* Ensures the background is grey */
-  color: #999 !important; /* Changes text color to a muted grey */
-  cursor: not-allowed !important; /* Shows 'not-allowed' cursor on hover */
-  box-shadow: none !important; /* Removes any shadow to give a flat appearance */
+  background-color: #ddd !important;
+  color: #999 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
 
 
 .error-message {
-  color: #e74c3c;
-  font-size: 14px;
-  margin-top: 1rem;
+  color: #ff5252;
+  font-size: 15px;
+  margin-bottom: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+  background-color: rgba(255, 82, 82, 0.1);
+  padding: 10px;
+  border: 1px solid #ff5252;
+  border-radius: 6px;
+}
+
+/* error message animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
