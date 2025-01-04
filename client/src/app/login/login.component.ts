@@ -17,6 +17,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   password: string = '';
   errorMessage: string = '';
   isButtonDisabled: boolean = false;
+  passwordVisible: boolean = false; // New property to toggle password visibility
   private navigationSubscription!: Subscription;
 
   constructor(
@@ -26,13 +27,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-
     this.username = localStorage.getItem('last_username') || '';
     this.password = localStorage.getItem('last_password') || '';
 
     this.navigationSubscription = this.router.events.subscribe((event) => {
       if (event instanceof NavigationStart) {
-
         this.isButtonDisabled = event.url === '/homepage' && this.userService.isLoggedIn();
       }
     });
@@ -44,16 +43,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  // login method
+  // Method to toggle password visibility
+  togglePasswordVisibility(): void {
+    this.passwordVisible = !this.passwordVisible;
+  }
+
+  // Login method
   login(): void {
     this.userService.login(this.username, this.password).subscribe({
       next: (user: any) => {
         console.log('Login successful:', user);
-
-        // error message die man am screen sieht
-        this.errorMessage = 'Login failed - Incorrect username or password.';
         const redirectUrl = user.isAdmin ? '/homepage' : '/homepage';
-
         this.router.navigate([redirectUrl]);
       },
       error: (err: any) => {
@@ -62,5 +62,4 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
     });
   }
-
 }

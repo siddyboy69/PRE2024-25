@@ -12,16 +12,29 @@
           autocomplete="off"
         />
       </div>
-      <div class="form-group">
+
+      <div class="form-group password-group">
         <input
           matInput
-          type="password"
+          [type]="passwordVisible ? 'text' : 'password'"
           placeholder="Password"
           name="password"
           [(ngModel)]="password"
           required
           autocomplete="off"
         />
+        <button
+          type="button"
+          class="toggle-password"
+          (click)="togglePasswordVisibility()"
+          aria-label="Toggle password visibility"
+        >
+          <img
+            [src]="passwordVisible ? 'assets/icons/eye-blind-icon.svg' : 'assets/icons/eye-icon.svg'"
+            alt="Toggle Password Visibility"
+            class="toggle-icon"
+          />
+        </button>
       </div>
 
       <div *ngIf="errorMessage" class="error-message">

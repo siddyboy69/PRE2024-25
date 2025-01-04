@@ -139,12 +139,15 @@
 
 .add-icon {
   cursor: pointer;
-  color: #A7D46C;
+  fill: #A7D46C;
   transition: color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .add-icon:hover {
-  color: #92C257;
+  fill: #92C257;
 }
 
 .user-list {
@@ -171,13 +174,16 @@
 }
 
 .delete-icon {
-  color: #dc3545;
+  fill: #dc3545;
   cursor: pointer;
   transition: color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .delete-icon:hover {
-  color: #a71d2a;
+  fill: #a71d2a;
 }
 
 /* Main Content */
