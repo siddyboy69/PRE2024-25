@@ -48,12 +48,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.passwordVisible = !this.passwordVisible;
   }
 
-  // Login method
+  // login method
   login(): void {
     this.userService.login(this.username, this.password).subscribe({
       next: (user: any) => {
         console.log('Login successful:', user);
+
+        // error message die man am screen sieht
+        this.errorMessage = 'Login failed - Incorrect username or password.';
         const redirectUrl = user.isAdmin ? '/homepage' : '/homepage';
+
         this.router.navigate([redirectUrl]);
       },
       error: (err: any) => {
