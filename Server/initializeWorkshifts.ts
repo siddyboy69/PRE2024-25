@@ -2,34 +2,33 @@ import { pool } from "./config/db";
 
 async function insertShift(userId: number, date: Date) {
     try {
-        // Skip weekends
+        // 1) Skip weekends
         if (date.getDay() === 0 || date.getDay() === 6) {
             console.log(`Skipping weekend ${date.toDateString()}`);
             return;
         }
 
-        // Set shift times with proper timezone handling
+        // 2) Define shift & break hours in local time
+        //    Here, shiftStart = 10:00, shiftEnd = 17:00, break = 14:00–14:30
         const shiftDate = new Date(date);
         shiftDate.setHours(0, 0, 0, 0);
 
         const shiftStart = new Date(shiftDate);
-        shiftStart.setHours(10, 0, 0);
+        shiftStart.setHours(10, 0, 0, 0);
 
         const shiftEnd = new Date(shiftDate);
-        shiftEnd.setHours(17, 0, 0);
+        shiftEnd.setHours(17, 0, 0, 0);
 
-        // Create break times
         const breakStart = new Date(shiftDate);
-        breakStart.setHours(14, 0, 0);
+        breakStart.setHours(14, 0, 0, 0);
 
         const breakEnd = new Date(shiftDate);
-        breakEnd.setHours(14, 30, 0);
+        breakEnd.setHours(14, 30, 0, 0);
 
-        // Format all dates for MySQL (YYYY-MM-DD HH:mm:ss)
-        const formatDateForMySQL = (date: Date) => {
-            const offset = date.getTimezoneOffset();
-            const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
-            return adjustedDate.toISOString().slice(0, 19).replace('T', ' ');
+        // 3) Format for MySQL without subtracting getTimezoneOffset()
+        //    => store exactly "YYYY-MM-DD HH:mm:ss" local time
+        const formatDateForMySQL = (d: Date) => {
+            return d.toISOString().slice(0, 19).replace('T', ' ');
         };
 
         const mysqlShiftStart = formatDateForMySQL(shiftStart);
@@ -39,44 +38,41 @@ async function insertShift(userId: number, date: Date) {
 
         console.log(`Inserting shift for ${date.toDateString()}`);
         console.log(`Shift start: ${mysqlShiftStart}`);
-        console.log(`Shift end: ${mysqlShiftEnd}`);
+        console.log(`Shift end:   ${mysqlShiftEnd}`);
 
-        // Insert shift
+        // 4) Insert the shift record
         const shiftSql = `
-           INSERT INTO shift (user_id, shiftStart, shiftEnd)
-           VALUES (?, ?, ?);
-       `;
+            INSERT INTO shift (user_id, shiftStart, shiftEnd)
+            VALUES (?, ?, ?);
+        `;
 
         const shiftResult: any = await new Promise((resolve, reject) => {
             pool.query(shiftSql, [userId, mysqlShiftStart, mysqlShiftEnd], (err, result) => {
                 if (err) {
                     console.error('Error inserting shift:', err);
-                    reject(err);
-                } else {
-                    resolve(result);
+                    return reject(err);
                 }
+                resolve(result);
             });
         });
 
-        // Insert break
+        // 5) Insert the break record
         const breakSql = `
-           INSERT INTO break (shift_id, breakStart, breakEnd)
-           VALUES (?, ?, ?);
-       `;
+            INSERT INTO break (shift_id, breakStart, breakEnd)
+            VALUES (?, ?, ?);
+        `;
 
         await new Promise((resolve, reject) => {
             pool.query(breakSql, [shiftResult.insertId, mysqlBreakStart, mysqlBreakEnd], (err, result) => {
                 if (err) {
                     console.error('Error inserting break:', err);
-                    reject(err);
-                } else {
-                    resolve(result);
+                    return reject(err);
                 }
+                resolve(result);
             });
         });
 
-        console.log(`Successfully inserted shift and break for ${date.toDateString()}\n`);
-
+        console.log(`Successfully inserted shift & break for ${date.toDateString()}\n`);
     } catch (error) {
         console.error('Error inserting shift and break:', error);
         throw error;
@@ -85,35 +81,40 @@ async function insertShift(userId: number, date: Date) {
 
 async function initializeNovemberShifts() {
     try {
+        // userId = 2 => Whichever user you want to assign these shifts to
         const userId = 2;
+
+        // 2024 => year
+        // 10   => 0-based index for November
         const year = 2024;
-        const month = 10; // 10 for November (0-based month)
+        const month = 10;
 
-        console.log(`Starting initialization for November ${year}`);
+        console.log(`Starting initialization for November ${year} (0-based month index: ${month})`);
 
-        // Clear existing shifts first
+        // 1) Optionally clear existing shifts for that month
         await new Promise((resolve, reject) => {
-            const clearSql = `DELETE s FROM shift s 
-                           LEFT JOIN break b ON s.id = b.shift_id 
-                           WHERE MONTH(s.shiftStart) = ? 
-                           AND YEAR(s.shiftStart) = ? 
-                           AND s.user_id = ?`;
+            const clearSql = `
+                DELETE s
+                FROM shift s
+                LEFT JOIN break b ON s.id = b.shift_id
+                WHERE MONTH(s.shiftStart) = ?
+                  AND YEAR(s.shiftStart) = ?
+                  AND s.user_id = ?
+            `;
             pool.query(clearSql, [month + 1, year, userId], (err, result) => {
                 if (err) {
                     console.error('Error clearing existing shifts:', err);
-                    reject(err);
-                } else {
-                    console.log('Cleared existing shifts');
-                    resolve(result);
+                    return reject(err);
                 }
+                console.log('Cleared existing shifts for that user in that month');
+                resolve(result);
             });
         });
 
-        // Get last day of November
+        // 2) Insert new shifts for each day
         const lastDay = new Date(year, month + 1, 0).getDate();
         console.log(`Processing days 1 through ${lastDay}`);
 
-        // Insert shifts for each day
         for (let day = 1; day <= lastDay; day++) {
             const currentDate = new Date(year, month, day);
             await insertShift(userId, currentDate);
@@ -128,5 +129,5 @@ async function initializeNovemberShifts() {
     }
 }
 
-// Run the initialization
+// Run the initialization script
 initializeNovemberShifts();

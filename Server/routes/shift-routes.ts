@@ -4,6 +4,13 @@ import { pool } from "../config/db";
 import { Shift } from "../model/shift";
 import { User } from "../model/user";
 import jwt from 'jsonwebtoken';
+interface MonthlyStatsRow {
+    shift_id: number;
+    shiftStart: string;
+    shiftEnd: string | null;
+    breakStart: string | null;
+    breakEnd: string | null;
+}
 
 export const shiftRouter = express.Router();
 
@@ -358,12 +365,25 @@ shiftRouter.get('/date/:userId/:date', verifyToken, (req: Request, res: Response
     });
 });
 shiftRouter.get('/monthly-stats/:userId/:year/:month', verifyToken, (req: Request, res: Response): void => {
-    const { userId, year, month } = req.params;
+    const userId = parseInt(req.params.userId, 10);
+    const year = parseInt(req.params.year, 10);
+    const month = parseInt(req.params.month, 10);
 
+    // 1. Construct date range for start/end of the given month
+    const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01 00:00:00`;
+
+    let nextYear = year;
+    let nextMonth = month + 1;
+    if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear++;
+    }
+    const endOfMonth = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01 00:00:00`;
+
+    // 2. Query for shifts & breaks in [startOfMonth, endOfMonth)
     const query = `
         SELECT 
             s.id as shift_id,
-            DATE(s.shiftStart) as shift_date,
             s.shiftStart,
             s.shiftEnd,
             b.breakStart,
@@ -371,84 +391,96 @@ shiftRouter.get('/monthly-stats/:userId/:year/:month', verifyToken, (req: Reques
         FROM shift s
         LEFT JOIN break b ON s.id = b.shift_id
         WHERE s.user_id = ?
-        AND YEAR(s.shiftStart) = ?
-        AND MONTH(s.shiftStart) = ?
+          AND s.shiftStart >= ?
+          AND s.shiftStart < ?
         ORDER BY s.shiftStart ASC;
     `;
 
-    pool.query(query, [userId, year, month], (err, rows) => {
+    pool.query(query, [userId, startOfMonth, endOfMonth], (err, rows) => {
         if (err) {
             console.error('Error fetching monthly stats:', err);
             return res.status(500).send({ message: 'Error fetching monthly stats' });
         }
 
-        // Group shifts by date
-        const shiftsByDate = new Map();
+        // We'll store date => { shifts: [], breaks: [] }
+        type DateData = {
+            shifts: { id: number; start: Date; end: Date | null }[];
+            breaks: { start: Date; end: Date }[];
+        };
 
-        rows.forEach((row: any) => {
-            const shiftDate = row.shift_date.toISOString().split('T')[0];
+        const shiftsByDate = new Map<string, DateData>();
 
+        for (const row of rows) {
+            // Convert shiftStart to a "YYYY-MM-DD" string
+            const shiftDate = new Date(row.shiftStart).toISOString().split('T')[0];
+
+            // Ensure we have an entry in the map
             if (!shiftsByDate.has(shiftDate)) {
-                shiftsByDate.set(shiftDate, {
-                    shifts: [],
-                    breaks: []
-                });
+                shiftsByDate.set(shiftDate, { shifts: [], breaks: [] });
             }
 
-            const dateData = shiftsByDate.get(shiftDate);
+            const dateData = shiftsByDate.get(shiftDate)!;
 
-            // Add shift if not already added
-            if (!dateData.shifts.find((s: any) => s.id === row.shift_id)) {
+
+            // Check if we already have that shift in dateData.shifts
+            const existingShift = dateData.shifts.find(s => s.id === row.shift_id);
+            if (!existingShift) {
                 dateData.shifts.push({
                     id: row.shift_id,
-                    start: row.shiftStart,
-                    end: row.shiftEnd
+                    start: new Date(row.shiftStart),
+                    end: row.shiftEnd ? new Date(row.shiftEnd) : null
                 });
             }
 
-            // Add break if exists
+            // If there's a break with both start & end, record it
             if (row.breakStart && row.breakEnd) {
                 dateData.breaks.push({
-                    start: row.breakStart,
-                    end: row.breakEnd
+                    start: new Date(row.breakStart),
+                    end: new Date(row.breakEnd)
                 });
             }
-        });
+        }
 
-        // Calculate statistics
+        // 4. Calculate total/average stats
         let totalWorkMinutes = 0;
         let totalBreakMinutes = 0;
-        const dailyStats = [];
+        const dailyStats: any[] = [];
 
         shiftsByDate.forEach((dateData, date) => {
-            const dayWorkMinutes = dateData.shifts.reduce((total: number, shift: any) => {
+            // sum shift durations
+            const dayWorkMinutes = dateData.shifts.reduce((acc, shift) => {
                 if (shift.start && shift.end) {
-                    return total + (new Date(shift.end).getTime() - new Date(shift.start).getTime()) / 60000;
+                    return acc + (shift.end.getTime() - shift.start.getTime()) / 60000;
                 }
-                return total;
+                return acc;
             }, 0);
 
-            const dayBreakMinutes = dateData.breaks.reduce((total: number, breakPeriod: any) => {
-                return total + (new Date(breakPeriod.end).getTime() - new Date(breakPeriod.start).getTime()) / 60000;
+            // sum break durations
+            const dayBreakMinutes = dateData.breaks.reduce((acc, b) => {
+                return acc + (b.end.getTime() - b.start.getTime()) / 60000;
             }, 0);
 
             totalWorkMinutes += dayWorkMinutes;
             totalBreakMinutes += dayBreakMinutes;
 
+            // We'll show the "first" shift's start/end in dailyStats
             dailyStats.push({
-                date,
+                date: date,
                 hoursWorked: Math.round((dayWorkMinutes - dayBreakMinutes) / 60 * 100) / 100,
                 breakMinutes: Math.round(dayBreakMinutes),
-                shiftStart: dateData.shifts[0]?.start,
-                shiftEnd: dateData.shifts[0]?.end
+                shiftStart: dateData.shifts[0]?.start ?? null,
+                shiftEnd: dateData.shifts[0]?.end ?? null
             });
         });
+
+        // Avoid division-by-zero
+        const totalDays = shiftsByDate.size || 1;
 
         const stats = {
             totalWorkDays: shiftsByDate.size,
             totalWorkHours: Math.round(totalWorkMinutes / 60 * 100) / 100,
             totalBreakMinutes: Math.round(totalBreakMinutes),
-            averageShiftLength: Math.round(totalWorkMinutes / shiftsByDate.size / 60 * 100) / 100,
+            averageShiftLength: Math.round(totalWorkMinutes / totalDays / 60 * 100) / 100,
             daysWithShifts: Array.from(shiftsByDate.keys()),
             dailyStats
         };
