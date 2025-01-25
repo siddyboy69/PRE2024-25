@@ -1,0 +1,10 @@
+<div class="header">
+  <h1 class="title">Firmen</h1>
+  <button class="add-button" (click)="addFirma()">+</button>
+</div>
+
+<ul class="firma-list">
+  <li *ngFor="let f of firmen" (click)="goToDetail(f.id)">
+    {{ f.bezeichnung }}
+  </li>
+</ul>

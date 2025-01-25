@@ -11,22 +11,29 @@ exports.shiftRouter = shiftRouter;
 
 const JWT_SECRET = process.env.JWT_SECRET || 's3cureP@ssW0rd12345!';
 
-const verifyToken = (req, res, next) => {
-    const token = req.headers['authorization']?.split(' ')[1];
+function verifyToken(req, res, next) {
+    const authHeader = req.headers["authorization"];
+    if (typeof authHeader !== "string") {
+        res.status(403).send({ message: "No token provided!" });
+        return;
+    }
 
+    const parts = authHeader.split(" ");
+    const token = parts[1];
     if (!token) {
-        return res.status(403).send({ message: 'No token provided!' });
+        res.status(403).send({ message: "No token provided!" });
+        return;
     }
 
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(401).send({ message: 'Unauthorized!' });
+            res.status(401).send({ message: "Unauthorized!" });
+            return;
         }
         req.userId = decoded.id;
         next();
     });
-};
-
+}
 
 
 

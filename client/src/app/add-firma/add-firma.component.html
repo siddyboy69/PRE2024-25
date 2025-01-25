@@ -1,0 +1,10 @@
+<div class="header">
+  <button class="cancel-button" (click)="cancel()">Abbrechen</button>
+  <h1 class="title">Neuer Firma</h1>
+  <button class="save-button" (click)="save()">Speichern</button>
+</div>
+
+<div class="form-container">
+  <label>Firma</label>
+  <input [(ngModel)]="bezeichnung" />
+</div>

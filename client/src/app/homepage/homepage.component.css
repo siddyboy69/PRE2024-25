@@ -648,3 +648,16 @@
 ::ng-deep .mat-calendar-next-button:hover {
   color: #A7D46C !important;
 }
+.hamburger-icon,
+.cog-icon {
+  font-size: 1.5rem;
+  color: #333;
+  transition: color 0.3s ease;
+  position: absolute;
+}
+
+.hamburger-icon:hover,
+.cog-icon:hover {
+  color: #A7D46C;
+  position: absolute;
+}

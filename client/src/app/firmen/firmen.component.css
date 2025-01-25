@@ -1,0 +1,30 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.add-button {
+  font-size: 1.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.firma-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.firma-list li {
+  padding: 15px;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}

@@ -409,4 +409,8 @@ export class HomepageComponent implements OnInit {
       }
     });
   }
+  openUserSettings(): void {
+      this.router.navigate(['/verwaltung']);
+  }
+
 }

@@ -1,0 +1,41 @@
+.verwaltung-container {
+  margin: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.verwaltung-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 25px;
+}
+
+.section-header {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.verwaltung-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.card-title {
+  font-size: 1rem;
+  color: #333;
+}
+
+.arrow {
+  color: #ccc;
+  font-size: 1.2rem;
+  margin-left: 8px;
+}

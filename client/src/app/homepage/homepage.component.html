@@ -1,13 +1,24 @@
 <nav class="navbar">
+  <!-- If admin => show hamburger -->
   <div class="navbar-menu-toggle" *ngIf="isAdmin" (click)="toggleSidebar()">
     <span class="hamburger-icon">&#9776;</span>
   </div>
+
+  <!-- If user => show cogwheel -->
+  <div class="navbar-menu-toggle" *ngIf="!isAdmin" (click)="openUserSettings()">
+    <!-- Simple gear icon; you can replace with an SVG if you prefer -->
+    <span class="cog-icon">&#9881;</span>
+  </div>
+
   <div class="navbar-title">Zeitausgleich</div>
   <div class="navbar-actions">
-    <button class="timesheet-button" [routerLink]="['/monthly-overview']" *ngIf="!isAdmin">Monat</button>
+    <button class="timesheet-button" [routerLink]="['/monthly-overview']" *ngIf="!isAdmin">
+      Monat
+    </button>
     <button class="logout-button" (click)="logout()">Abmelden</button>
   </div>
 </nav>
+
 
 <div class="container">
   <div class="content-wrapper">

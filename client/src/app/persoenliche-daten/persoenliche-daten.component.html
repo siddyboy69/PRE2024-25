@@ -1,0 +1,22 @@
+<!-- Reuse the same outer container and title classes as "Verwaltung" -->
+<div class="verwaltung-container">
+  <!-- Big bold title, using the same class as "verwaltung-title" -->
+  <h1 class="verwaltung-title">
+    {{ userFirstName }} {{ userLastName }}
+  </h1>
+
+  <!-- Subheading in grey -->
+  <h2 class="section-header">PERSÖNLICHE DATEN</h2>
+
+  <!-- White box, using the same “card” class -->
+  <div class="verwaltung-card">
+    <div class="info-row">
+      <div class="label">Vorname</div>
+      <div class="value">{{ userFirstName }}</div>
+    </div>
+    <div class="info-row">
+      <div class="label">Nachname</div>
+      <div class="value">{{ userLastName }}</div>
+    </div>
+  </div>
+</div>

@@ -18,8 +18,14 @@ export const shiftRouter = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 's3cureP@ssW0rd12345!';
 
 const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
-    const token = req.headers['authorization']?.split(' ')[1];  // Add space between quotes here
+    const authHeader = req.headers['authorization'];
+    if (typeof authHeader !== 'string') {
+        res.status(403).send({ message: 'No token provided!' });
+        return;
+    }
 
+    const parts = authHeader.split(' ');
+    const token = parts[1];
     if (!token) {
         res.status(403).send({ message: 'No token provided!' });
         return;
