@@ -1,17 +1,14 @@
 import { Component } from '@angular/core';
 import { UserService } from '../../_service/user.service';
 import { Router } from '@angular/router';
-import {FormsModule} from '@angular/forms';
-import {NgIf} from "@angular/common";
+import { FormsModule } from '@angular/forms';
+import { NgIf, NgClass } from "@angular/common";
 
 @Component({
   selector: 'app-add-mitarbeiter',
   standalone: true,
   templateUrl: './add-mitarbeiter.component.html',
-    imports: [
-        FormsModule,
-        NgIf
-    ],
+  imports: [FormsModule, NgIf, NgClass],
   styleUrls: ['./add-mitarbeiter.component.css']
 })
 export class AddMitarbeiterComponent {
@@ -19,18 +16,21 @@ export class AddMitarbeiterComponent {
   lastName: string = '';
   username: string = '';
   password: string = '';
+  confirmPassword: string = '';
   sex: string = '';
+  isPasswordMatch: boolean = true;
 
   constructor(private userService: UserService, private router: Router) {}
 
+  checkPasswordMatch(): void {
+    this.isPasswordMatch = this.password === this.confirmPassword;
+  }
+
   addEmployee(): void {
-    const employeeData = {
-      username: this.username,
-      password: this.password,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      sex: this.sex
-    };
+    if (!this.isPasswordMatch) {
+      console.error("Passwords do not match!");
+      return;
+    }
 
     this.userService.register(
       this.username, this.password, '', this.firstName, this.lastName, this.sex, '', '', '', ''
@@ -53,6 +53,4 @@ export class AddMitarbeiterComponent {
   goBack(): void {
     this.router.navigate(['/homepage']);
   }
-
-
 }

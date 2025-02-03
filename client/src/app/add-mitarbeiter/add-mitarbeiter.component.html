@@ -21,9 +21,21 @@
       <div class="form-group">
         <input placeholder="Benutzername" [(ngModel)]="username" name="username" required />
       </div>
+
       <div class="form-group">
-        <input type="password" placeholder="Passwort" [(ngModel)]="password" name="password" required />
+        <input type="password" placeholder="Passwort" [(ngModel)]="password" name="password" required (input)="checkPasswordMatch()" />
       </div>
+
+      <div class="form-group">
+        <input type="password" placeholder="Passwort bestätigen" [(ngModel)]="confirmPassword" name="confirmPassword" required (input)="checkPasswordMatch()" />
+      </div>
+
+      <div class="password-match-message" *ngIf="password && confirmPassword">
+        <span [ngClass]="{'match': isPasswordMatch, 'mismatch': !isPasswordMatch}">
+          {{ isPasswordMatch ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein' }}
+        </span>
+      </div>
+
       <div class="form-group">
         <select [(ngModel)]="sex" name="sex" required>
           <option value="" disabled selected>Geschlecht auswählen</option>
@@ -32,7 +44,8 @@
           <option value="Divers">Divers</option>
         </select>
       </div>
-      <button type="submit" [disabled]="addEmployeeForm.invalid">Mitarbeiter hinzufügen</button>
+
+      <button type="submit" [disabled]="addEmployeeForm.invalid || !isPasswordMatch">Mitarbeiter hinzufügen</button>
     </form>
   </div>
 </div>

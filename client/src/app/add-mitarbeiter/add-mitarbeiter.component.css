@@ -205,3 +205,20 @@ button:disabled {
 .form-card {
   animation: scaleIn 0.4s ease-out;
 }
+
+.password-match-message {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  width: 241px;
+}
+
+.password-match-message .match {
+  color: #27ae60;
+}
+
+.password-match-message .mismatch {
+  color: #e74c3c;
+}
+

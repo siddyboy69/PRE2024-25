@@ -112,11 +112,19 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
 // Registration route
 userRouter.post('/register/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const sql = `INSERT INTO user (uuid, username, password, firstname, lastname, sex) 
-                     VALUES (uuid(), ${pool.escape(req.body.username)}, ${pool.escape(hashedPassword)}, 
-                             ${pool.escape(req.body.firstname)}, ${pool.escape(req.body.lastname)}, 
-                             ${pool.escape(req.body.sex)});`;
+        const { username, password, confirmPassword, firstname, lastname, sex } = req.body;
+
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            res.status(400).send({ message: "Passwörter stimmen nicht überein!" });
+            return;
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const sql = `INSERT INTO user (uuid, username, password, firstname, lastname, sex)
+                     VALUES (uuid(), ${pool.escape(username)}, ${pool.escape(hashedPassword)},
+                             ${pool.escape(firstname)}, ${pool.escape(lastname)},
+                             ${pool.escape(sex)});`;
 
         pool.query(sql, (err, rows) => {
             if (err) {
