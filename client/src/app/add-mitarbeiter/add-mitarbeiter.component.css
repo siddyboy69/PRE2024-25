@@ -44,11 +44,17 @@ body {
   color: #A7D46C;
   flex-grow: 1;
   text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .navbar-actions {
   display: flex;
   align-items: center;
+  width: 100%;
+  justify-content: end;
 }
 
 .logout-button {
@@ -58,7 +64,7 @@ body {
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: background-color 0.3s ease;
   position: relative;
   width: 92px;
   height: 31px;
@@ -73,23 +79,21 @@ body {
 
 /* Back Button */
 .back-button-wrapper {
-  position: absolute;
-  top: 80px;
-  left: 20px;
-  z-index: 50;
+  width: 100%;
+  margin-top: 1px;
 }
 
 .back-button {
-  font-size: 1rem;
   color: #A7D46C;
-  text-decoration: none;
+  font-size: 1rem;
   cursor: pointer;
+  text-decoration: none;
   transition: color 0.3s ease, transform 0.2s ease;
+  min-width: 150px;
 }
 
 .back-button:hover {
   color: #92C257;
-  transform: translateX(-5px);
 }
 
 /* Form Container */
@@ -150,13 +154,11 @@ button {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 button:hover {
   background-color: #92C257;
-  transform: scale(1.05);
 }
 
 button:disabled {

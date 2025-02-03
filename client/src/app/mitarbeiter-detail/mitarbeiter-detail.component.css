@@ -36,7 +36,6 @@ button {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1rem;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
@@ -127,6 +126,7 @@ button {
   position: sticky;
   top: 0;
   z-index: 100;
+  height: 31px;
 }
 
 .navbar-title {
@@ -135,6 +135,10 @@ button {
   color: #A7D46C;
   text-align: center;
   flex-grow: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .back-button {
@@ -148,7 +152,6 @@ button {
 
 .back-button:hover {
   color: #92C257;
-  transform: translateX(-5px);
 }
 
 .navbar-actions {
@@ -170,6 +173,7 @@ button {
   transition: background-color 0.3s ease;
   width: 92px;
   height: 31px;
+  margin: 0;
 }
 
 .logout-button:hover {
