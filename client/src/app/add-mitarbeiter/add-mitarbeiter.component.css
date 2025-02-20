@@ -166,7 +166,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .form-container {
     max-width: 100%;
@@ -174,13 +173,11 @@ button:disabled {
   }
 }
 
-/* Hover Effects for Form Inputs */
 .form-group input:hover,
 .form-group select:hover {
   border-color: #92C257;
 }
 
-/* Accessibility: Placeholder styling */
 .form-group input::placeholder {
   color: #aaa;
   font-style: italic;
@@ -190,7 +187,6 @@ button:disabled {
   color: transparent;
 }
 
-/* Subtle Animations */
 @keyframes scaleIn {
   from {
     transform: scale(0.95);
@@ -221,4 +217,62 @@ button:disabled {
 .password-match-message .mismatch {
   color: #e74c3c;
 }
+
+/*password meter*/
+.password-strength-container {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.password-strength-border {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #ccc;
+}
+
+.password-strength-bar {
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+}
+
+.password-strength-bar.empty {
+  background-color: #d3d3d3;
+  width: 100%;
+}
+
+.password-strength-bar.very-weak {
+  background-color: #d32f2f;
+  width: 10% !important;
+}
+
+.password-strength-bar.weak {
+  background-color: #ff9800;
+}
+
+.password-strength-bar.medium {
+  background-color: #ffeb3b;
+}
+
+.password-strength-bar.strong {
+  background-color: #4caf50;
+}
+
+.password-strength-bar.very-strong {
+  background-color: #2e7d32;
+}
+
+.password-strength-text {
+  margin: 5px 0 12px 0;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+
+
+
+
 

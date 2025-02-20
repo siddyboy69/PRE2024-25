@@ -22,17 +22,45 @@
         <input placeholder="Benutzername" [(ngModel)]="username" name="username" required />
       </div>
 
+      <!-- Password Field -->
       <div class="form-group">
-        <input type="password" placeholder="Passwort" [(ngModel)]="password" name="password" required (input)="checkPasswordMatch()" />
+        <input
+          type="password"
+          placeholder="Passwort"
+          [(ngModel)]="password"
+          name="password"
+          required
+          (input)="checkPasswordStrength()"
+        />
+      </div>
+
+      <div class="password-strength-container">
+        <div class="password-strength-border">
+          <div
+            class="password-strength-bar"
+            [ngClass]="passwordStrengthColor"
+            [style.width.%]="passwordStrengthValue">
+          </div>
+        </div>
+        <div class="password-strength-text">
+          {{ passwordStrengthText }}
+        </div>
       </div>
 
       <div class="form-group">
-        <input type="password" placeholder="Passwort bestätigen" [(ngModel)]="confirmPassword" name="confirmPassword" required (input)="checkPasswordMatch()" />
+        <input
+          type="password"
+          placeholder="Passwort bestätigen"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          required
+          (input)="checkPasswordMatch()"
+        />
       </div>
 
       <div class="password-match-message" *ngIf="password && confirmPassword">
         <span [ngClass]="{'match': isPasswordMatch, 'mismatch': !isPasswordMatch}">
-          {{ isPasswordMatch ? 'Passwörter stimmen überein' : 'Passwörter stimmen nicht überein' }}
+          {{ isPasswordMatch ? 'Passwörter stimmen überein ✅' : 'Passwörter stimmen nicht überein ❌' }}
         </span>
       </div>
 
@@ -45,7 +73,9 @@
         </select>
       </div>
 
-      <button type="submit" [disabled]="addEmployeeForm.invalid || !isPasswordMatch">Mitarbeiter hinzufügen</button>
+      <button type="submit" [disabled]="addEmployeeForm.invalid || !isPasswordMatch">
+        Mitarbeiter hinzufügen
+      </button>
     </form>
   </div>
 </div>

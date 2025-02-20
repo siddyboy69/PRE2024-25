@@ -8,7 +8,11 @@ import { NgIf, NgClass } from "@angular/common";
   selector: 'app-add-mitarbeiter',
   standalone: true,
   templateUrl: './add-mitarbeiter.component.html',
-  imports: [FormsModule, NgIf, NgClass],
+  imports: [
+    FormsModule,
+    NgIf,
+    NgClass
+  ],
   styleUrls: ['./add-mitarbeiter.component.css']
 })
 export class AddMitarbeiterComponent {
@@ -18,19 +22,21 @@ export class AddMitarbeiterComponent {
   password: string = '';
   confirmPassword: string = '';
   sex: string = '';
-  isPasswordMatch: boolean = true;
+  isPasswordMatch: boolean = false;
+  passwordStrengthValue: number = 0;
+  passwordStrengthText: string = 'Sehr schwach';
+  passwordStrengthColor: string = 'weak';
 
   constructor(private userService: UserService, private router: Router) {}
 
-  checkPasswordMatch(): void {
-    this.isPasswordMatch = this.password === this.confirmPassword;
-  }
-
   addEmployee(): void {
-    if (!this.isPasswordMatch) {
-      console.error("Passwords do not match!");
-      return;
-    }
+    const employeeData = {
+      username: this.username,
+      password: this.password,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      sex: this.sex
+    };
 
     this.userService.register(
       this.username, this.password, '', this.firstName, this.lastName, this.sex, '', '', '', ''
@@ -53,4 +59,44 @@ export class AddMitarbeiterComponent {
   goBack(): void {
     this.router.navigate(['/homepage']);
   }
+
+  checkPasswordMatch(): void {
+    this.isPasswordMatch = this.password === this.confirmPassword;
+  }
+
+  checkPasswordStrength(): void {
+    if (!this.password) {
+      this.passwordStrengthValue = 0;
+      this.passwordStrengthText = '';
+      this.passwordStrengthColor = 'empty';
+      return;
+    }
+
+    let strength = 0;
+    if (this.password.length >= 8) strength += 1;
+    if (/[A-Z]/.test(this.password)) strength += 1;
+    if (/[0-9]/.test(this.password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(this.password)) strength += 1;
+
+    this.passwordStrengthValue = (strength / 4) * 100;
+
+    if (this.passwordStrengthValue <= 20) {
+      this.passwordStrengthText = 'Sehr schwach';
+      this.passwordStrengthColor = 'very-weak';
+    } else if (this.passwordStrengthValue <= 40) {
+      this.passwordStrengthText = 'Schwach';
+      this.passwordStrengthColor = 'weak';
+    } else if (this.passwordStrengthValue <= 60) {
+      this.passwordStrengthText = 'Mittel';
+      this.passwordStrengthColor = 'medium';
+    } else if (this.passwordStrengthValue <= 80) {
+      this.passwordStrengthText = 'Stark';
+      this.passwordStrengthColor = 'strong';
+    } else {
+      this.passwordStrengthText = 'Sehr stark';
+      this.passwordStrengthColor = 'very-strong';
+    }
+  }
+
+
 }
