@@ -11,6 +11,7 @@ CREATE TABLE user (
     firstname VARCHAR(20) DEFAULT NULL,
     lastname VARCHAR(20) DEFAULT NULL,
     sex VARCHAR(12) NOT NULL DEFAULT 'thing',
+    deleted TINYINT(1) DEFAULT 0,
     PRIMARY KEY (id)
 );
 

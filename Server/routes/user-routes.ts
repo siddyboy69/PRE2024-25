@@ -37,7 +37,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
 // Route to get all users (non-admins only)
 userRouter.get('/', verifyToken, (req: Request, res: Response): void => {
     let data: User[] = [];
-    pool.query('SELECT * FROM user WHERE is_admin = 0', (err, rows) => {
+    pool.query('SELECT * FROM user WHERE is_admin = 0 AND deleted = 0', (err, rows) => {
         if (err) {
             console.log(err);
             res.status(500).send('Server error, please contact support.');
@@ -56,6 +56,49 @@ userRouter.get('/', verifyToken, (req: Request, res: Response): void => {
             ));
         }
         res.status(200).send(data);
+    });
+});
+
+// soft-delete (get user from bin)
+userRouter.get('/soft-delete', verifyToken, (req: Request, res: Response): void => {
+    let data: User[] = [];
+    pool.query('SELECT * FROM user WHERE is_admin = 0 AND deleted = 1', (err, rows) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send('Server error, please contact support.');
+            return;
+        }
+        for (let row of rows) {
+            data.push(new User(
+                row.id,
+                row.uuid,
+                row.username,
+                row.password,
+                row.is_admin,
+                row.firstname,
+                row.lastname,
+                row.sex
+            ));
+        }
+        res.status(200).send(data);
+    });
+});
+
+// put soft-delete (move user into bin)
+userRouter.put('/soft-delete/:id', verifyToken, (req: Request, res: Response, next: NextFunction): void => {
+
+    pool.query('UPDATE user SET deleted = 1 WHERE id = ?', [req.params.id], (err) => {
+        if (err) return res.status(500).send('Error moving user to bin');
+        res.status(200).send({ message: 'User moved to bin' });
+    });
+
+});
+
+// restore user (from bin)
+userRouter.put('/restore/:id', verifyToken, (req, res) => {
+    pool.query('UPDATE user SET deleted = 0 WHERE id = ?', [req.params.id], (err) => {
+        if (err) return res.status(500).send('Error restoring user');
+        res.status(200).send({ message: 'User restored' });
     });
 });
 
