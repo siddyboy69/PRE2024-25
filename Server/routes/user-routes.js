@@ -97,12 +97,12 @@ exports.userRouter.get('/', verifyToken, (req, res) => {
             return;
         }
         for (let row of rows) {
-            data.push(new user_1.User(row.id, row.uuid, row.username, row.password, row.is_admin, row.firstname, row.lastname, row.sex));
+            data.push(new user_1.User(row.id, row.uuid, row.username, row.password, row.is_admin, row.firstname, row.lastname, row.sex, row.deleted));
         }
         res.status(200).send(data);
     });
 });
-// soft-delete (bin users)
+// soft-delete (get user from bin)
 exports.userRouter.get('/soft-delete', verifyToken, (req, res) => {
     let data = [];
     db_1.pool.query('SELECT * FROM user WHERE is_admin = 0 AND deleted = 1', (err, rows) => {
@@ -112,12 +112,12 @@ exports.userRouter.get('/soft-delete', verifyToken, (req, res) => {
             return;
         }
         for (let row of rows) {
-            data.push(new user_1.User(row.id, row.uuid, row.username, row.password, row.is_admin, row.firstname, row.lastname, row.sex));
+            data.push(new user_1.User(row.id, row.uuid, row.username, row.password, row.is_admin, row.firstname, row.lastname, row.sex, row.deleted));
         }
         res.status(200).send(data);
     });
 });
-// put soft-delete (bin users)
+// put soft-delete (move user into bin)
 exports.userRouter.put('/soft-delete/:id', verifyToken, (req, res, next) => {
     db_1.pool.query('UPDATE user SET deleted = 1 WHERE id = ?', [req.params.id], (err) => {
         if (err)
@@ -125,7 +125,7 @@ exports.userRouter.put('/soft-delete/:id', verifyToken, (req, res, next) => {
         res.status(200).send({ message: 'User moved to bin' });
     });
 });
-// restore user
+// restore user (from bin)
 exports.userRouter.put('/restore/:id', verifyToken, (req, res) => {
     db_1.pool.query('UPDATE user SET deleted = 0 WHERE id = ?', [req.params.id], (err) => {
         if (err)
@@ -156,7 +156,7 @@ exports.userRouter.post('/login/', (req, res, next) => __awaiter(void 0, void 0,
         // Generate JWT Token
         const token = jsonwebtoken_1.default.sign({ id: user.id, username: user.username, isAdmin: user.is_admin }, JWT_SECRET, { expiresIn: '1h' });
         // Create User object
-        const data = new user_1.User(user.id, user.uuid, user.username, user.password, user.is_admin, user.firstname, user.lastname, user.sex);
+        const data = new user_1.User(user.id, user.uuid, user.username, user.password, user.is_admin, user.firstname, user.lastname, user.sex, user.deleted);
         // Return success response
         res.status(200).send({ user: data, token });
     }));
@@ -195,7 +195,8 @@ exports.userRouter.post('/register/', (req, res, next) => __awaiter(void 0, void
                             is_admin: rws[0].is_admin,
                             firstname: rws[0].firstname,
                             lastname: rws[0].lastname,
-                            sex: rws[0].sex
+                            sex: rws[0].sex,
+                            deleted: rws[0].deleted
                         };
                         res.status(200).send(usr);
                     }
@@ -234,7 +235,7 @@ exports.userRouter.put('/update', verifyToken, (req, res, next) => {
             next(err);
             return;
         }
-        db_1.pool.query('SELECT id, username, firstname, lastname, sex FROM user WHERE id = ?', [id], (err, rows) => {
+        db_1.pool.query('SELECT id, username, firstname, lastname, sex, deleted FROM user WHERE id = ?', [id], (err, rows) => {
             if (err) {
                 console.error("Select error:", err);
                 next(err);
@@ -270,7 +271,7 @@ exports.userRouter.delete('/delete/:id', verifyToken, (req, res, next) => {
 // Get user details by ID
 exports.userRouter.get('/:id', verifyToken, (req, res, next) => {
     const userId = req.params.id;
-    db_1.pool.query('SELECT username, firstname, lastname, sex FROM user WHERE id = ?', [userId], (err, rows) => {
+    db_1.pool.query('SELECT username, firstname, lastname, sex, deleted FROM user WHERE id = ?', [userId], (err, rows) => {
         if (err) {
             next(err);
             return;

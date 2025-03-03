@@ -52,7 +52,8 @@ userRouter.get('/', verifyToken, (req: Request, res: Response): void => {
                 row.is_admin,
                 row.firstname,
                 row.lastname,
-                row.sex
+                row.sex,
+                row.deleted
             ));
         }
         res.status(200).send(data);
@@ -77,7 +78,8 @@ userRouter.get('/soft-delete', verifyToken, (req: Request, res: Response): void 
                 row.is_admin,
                 row.firstname,
                 row.lastname,
-                row.sex
+                row.sex,
+                row.deleted
             ));
         }
         res.status(200).send(data);
@@ -143,7 +145,8 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
             user.is_admin,
             user.firstname,
             user.lastname,
-            user.sex
+            user.sex,
+            user.deleted
         );
 
         // Return success response
@@ -190,7 +193,8 @@ userRouter.post('/register/', async (req: Request, res: Response, next: NextFunc
                             is_admin: rws[0].is_admin,
                             firstname: rws[0].firstname,
                             lastname: rws[0].lastname,
-                            sex: rws[0].sex
+                            sex: rws[0].sex,
+                            deleted: rws[0].deleted
                         };
                         res.status(200).send(usr);
                     } else {
@@ -233,7 +237,7 @@ userRouter.put('/update', verifyToken, (req: Request, res: Response, next: NextF
             return;
         }
 
-        pool.query('SELECT id, username, firstname, lastname, sex FROM user WHERE id = ?',
+        pool.query('SELECT id, username, firstname, lastname, sex, deleted FROM user WHERE id = ?',
             [id],
             (err, rows) => {
                 if (err) {
@@ -273,7 +277,7 @@ userRouter.delete('/delete/:id', verifyToken, (req: Request, res: Response, next
 // Get user details by ID
 userRouter.get('/:id', verifyToken, (req: Request, res: Response, next: NextFunction): void => {
     const userId = req.params.id;
-    pool.query('SELECT username, firstname, lastname, sex FROM user WHERE id = ?',
+    pool.query('SELECT username, firstname, lastname, sex, deleted FROM user WHERE id = ?',
         [userId],
         (err, rows) => {
             if (err) {
