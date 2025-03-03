@@ -1,1 +1,46 @@
+<div class="container bin-container">
+  <nav class="navbar">
+    <div class="navbar-menu-toggle" (click)="goBack()">
+      <span class="hamburger-icon">&#9664;</span>
+    </div>
+    <div class="navbar-title">Papierkorb - Gelöschte Mitarbeiter</div>
+    <div class="navbar-actions">
+      <button class="logout-button" (click)="logout()">Abmelden</button>
+    </div>
+  </nav>
+
+  <div class="content-wrapper">
+    <div class="bin-content">
+      <h2 class="bin-title">Gelöschte Mitarbeiter</h2>
+
+      <table class="bin-table">
+        <thead>
+        <tr>
+          <th>Vorname</th>
+          <th>Nachname</th>
+          <th>Aktionen</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.firstName }}</td>
+          <td>{{ user.lastName }}</td>
+          <td class="action-buttons">
+            <button class="restore-btn" (click)="restore(user.id)">
+              Wiederherstellen
+            </button>
+            <button class="delete-btn" (click)="deletePermanently(user.id)">
+              Endgültig Löschen
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <p *ngIf="users.length === 0" class="empty-message">
+        Der Papierkorb ist leer.
+      </p>
+    </div>
+  </div>
+</div>
 

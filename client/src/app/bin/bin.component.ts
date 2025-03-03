@@ -1,15 +1,16 @@
 import { Component } from '@angular/core';
 import {UserService} from '../../_service/user.service';
+import {NgFor, NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-bin',
   standalone: true,
-  imports: [],
+  imports: [NgFor, NgIf],
   templateUrl: './bin.component.html',
   styleUrl: './bin.component.css'
 })
 export class BinComponent {
-  users:any = [];
+  users: any = [];
 
   constructor(private userService: UserService) {
     this.userService.getDeletedUsers().subscribe({
@@ -21,7 +22,7 @@ export class BinComponent {
 
   }
 
-  restore(id:number) {
+  restore(id: number) {
     this.userService.restoreUser(id).subscribe({
       next: (employeeData) => {
         console.log(employeeData);
@@ -29,7 +30,7 @@ export class BinComponent {
     })
   }
 
-  deletePermanently(id:number) {
+  deletePermanently(id: number) {
     this.userService.deleteUser(id).subscribe({
       next: (employeeData) => {
         console.log(employeeData);
@@ -37,4 +38,12 @@ export class BinComponent {
     })
   }
 
+  goBack() {
+    window.history.back();
+  }
+
+  logout() {
+    this.userService.logout();
+
+  }
 }

@@ -14,7 +14,7 @@ export class UserService {
 
   constructor(private http: HttpClient, private msg: MessageService) {
     // Initialize with a default user
-    this.user = new User(0, '', '', '', false, '', '', '');
+    this.user = new User(0, '', '', '', false, '', '', '', false);
     // Try to load from localStorage
     const storedUser = this.loadUserFromLocalStorage();
     if (storedUser.id !== 0) {
@@ -48,7 +48,8 @@ export class UserService {
           response.user.isAdmin === 1 || response.user.isAdmin === true, // Handle both cases
           response.user.firstName, // Changed from firstname to firstName
           response.user.lastName,  // Changed from lastname to lastName
-          response.user.sex
+          response.user.sex,
+          response.user.deleted
         );
         console.log('Created user object:', this.user);
         this.saveUserToLocalStorage(this.user);
@@ -69,7 +70,7 @@ export class UserService {
       tap(res => this.msg.addMessage('Register successful')),
       catchError(_ => {
         this.msg.addMessage('Register failed');
-        return of(new User(0, '', '', '', false, '', '', ''));
+        return of(new User(0, '', '', '', false, '', '', '', false));
       })
     );
   }
@@ -104,14 +105,15 @@ export class UserService {
         employeeData.is_admin || false,
         employeeData.firstname,
         employeeData.lastname,
-        employeeData.sex
+        employeeData.sex,
+        employeeData.deleted
       )),
       catchError(err => {
         if (err.status === 401) {
           this.logout();
           this.msg.addMessage('Session expired. Please log in again.');
         }
-        return of(new User(0, '', '', '', false, '', '', ''));
+        return of(new User(0, '', '', '', false, '', '', '', false));
       })
     );
   }
@@ -137,7 +139,7 @@ export class UserService {
         catchError(err => {
           this.msg.addMessage('Failed to update user');
           console.error('Error updating user:', err);
-          return of(new User(0, '', '', '', false, '', '', ''));
+          return of(new User(0, '', '', '', false, '', '', '', false));
         })
       );
   }
@@ -156,7 +158,7 @@ export class UserService {
 
   /** User logout */
   logout(): void {
-    this.user = new User(0, '', '', '', false, '', '', '');
+    this.user = new User(0, '', '', '', false, '', '', '', false);
     localStorage.removeItem('loggedInUser');
     localStorage.removeItem('auth_token');
     this.msg.addMessage('Logout successful');
@@ -180,10 +182,11 @@ export class UserService {
         Boolean(userData.isAdmin), // Ensure boolean conversion
         userData.firstname,
         userData.lastname,
-        userData.sex
+        userData.sex,
+        userData.deleted
       );
     }
-    return new User(0, '', '', '', false, '', '', '');
+    return new User(0, '', '', '', false, '', '', '', false);
   }
 
   /** Helper to generate authorization headers */
