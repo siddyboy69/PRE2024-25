@@ -246,12 +246,12 @@ export class HomepageComponent implements OnInit {
 
   deleteEmployee(employeeId: number, event: Event): void {
     event.stopPropagation();
-    const confirmDelete = confirm('Sind Sie sicher, dass Sie diesen Mitarbeiter löschen möchten?');
+    const confirmDelete = confirm('Sind Sie sicher, dass Sie diesen Mitarbeiter in den Papierkorb verschieben möchten?');
 
     if (confirmDelete && employeeId) {
-      this.userService.deleteUser(employeeId).subscribe({
+      this.userService.softDeleteUser(employeeId).subscribe({
         next: (response) => {
-          this.msg.addMessage('Mitarbeiter erfolgreich gelöscht');
+          this.msg.addMessage('Mitarbeiter erfolgreich in den Papierkorb verschoben');
           this.view_employees = this.employees.filter(emp => emp.id !== employeeId);
           this.employees = this.employees.filter(emp => emp.id !== employeeId);
 
@@ -260,8 +260,8 @@ export class HomepageComponent implements OnInit {
           }
         },
         error: (err) => {
-          console.error('Error deleting employee:', err);
-          this.msg.addMessage('Fehler beim Löschen des Mitarbeiters');
+          console.error('Error moving employee:', err);
+          this.msg.addMessage('Fehler beim Verschieben des Mitarbeiters');
         }
       });
     }

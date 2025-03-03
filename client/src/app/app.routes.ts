@@ -12,6 +12,7 @@ import { PersoenlicheDatenComponent } from './persoenliche-daten/persoenliche-da
 import { FirmenComponent } from './firmen/firmen.component'
 import { FirmenDetailComponent } from './firmen-detail/firmen-detail.component'
 import { AddFirmaComponent } from './add-firma/add-firma.component'
+import { BinComponent } from './bin/bin.component'
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -23,7 +24,8 @@ export const routes: Routes = [
   { path: 'verwaltung/persoenliche-daten', component: PersoenlicheDatenComponent, canActivate: [userGuard] },
   { path: 'verwaltung/firmen', component: FirmenComponent, canActivate: [userGuard] },
   { path: 'verwaltung/firmen/:id', component: FirmenDetailComponent, canActivate: [userGuard] },
-  { path: 'verwaltung/add-firma', component: AddFirmaComponent, canActivate: [userGuard] }
+  { path: 'verwaltung/add-firma', component: AddFirmaComponent, canActivate: [userGuard] },
+  { path: 'bin', component: BinComponent, canActivate: [adminGuard] }
 ]
 
 export const appConfig = {

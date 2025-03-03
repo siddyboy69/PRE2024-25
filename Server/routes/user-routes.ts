@@ -34,6 +34,7 @@ const verifyToken = (req: Request, res: Response, next: NextFunction): void => {
         next();
     });
 };
+
 // Route to get all users (non-admins only)
 userRouter.get('/', verifyToken, (req: Request, res: Response): void => {
     let data: User[] = [];

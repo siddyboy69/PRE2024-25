@@ -7,6 +7,7 @@ export class User {
   firstname: string = ""; // Keep lowercase for frontend consistency
   lastname: string = "";  // Keep lowercase for frontend consistency
   sex: string = "";
+  deleted: boolean = false;
 
   constructor(
     id: number,
@@ -16,7 +17,8 @@ export class User {
     isAdmin: boolean,
     firstname: string,
     lastname: string,
-    sex: string
+    sex: string,
+    deleted: boolean
   ) {
     this.id = id;
     this.uuid = uuid;
@@ -26,5 +28,6 @@ export class User {
     this.firstname = firstname || ''; // Add fallback
     this.lastname = lastname || '';   // Add fallback
     this.sex = sex;
+    this.deleted = deleted;
   }
 }

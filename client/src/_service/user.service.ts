@@ -191,4 +191,18 @@ export class UserService {
     const token = localStorage.getItem('auth_token');
     return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
+
+  /** bin **/
+  getDeletedUsers(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/users/soft-delete`, { headers: this.getAuthHeaders() });
+  }
+
+  softDeleteUser(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/soft-delete/${id}`, {}, { headers: this.getAuthHeaders() });
+  }
+
+  restoreUser(id: number): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/users/restore/${id}`, {}, { headers: this.getAuthHeaders() });
+  }
+
 }
