@@ -159,13 +159,7 @@ userRouter.post('/login/', async (req: Request, res: Response, next: NextFunctio
 // Registration route
 userRouter.post('/register/', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { username, password, confirmPassword, firstname, lastname, sex } = req.body;
-
-        // Check if passwords match
-        if (password !== confirmPassword) {
-            res.status(400).send({ message: "Passwörter stimmen nicht überein!" });
-            return;
-        }
+        const { username, password, firstname, lastname, sex } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const sql = `INSERT INTO user (uuid, username, password, firstname, lastname, sex)

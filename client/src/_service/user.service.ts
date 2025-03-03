@@ -69,6 +69,7 @@ export class UserService {
     }).pipe(
       tap(res => this.msg.addMessage('Register successful')),
       catchError(_ => {
+        console.log(_);
         this.msg.addMessage('Register failed');
         return of(new User(0, '', '', '', false, '', '', '', false));
       })

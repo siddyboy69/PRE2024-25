@@ -164,12 +164,7 @@ exports.userRouter.post('/login/', (req, res, next) => __awaiter(void 0, void 0,
 // Registration route
 exports.userRouter.post('/register/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { username, password, confirmPassword, firstname, lastname, sex } = req.body;
-        // Check if passwords match
-        if (password !== confirmPassword) {
-            res.status(400).send({ message: "Passwörter stimmen nicht überein!" });
-            return;
-        }
+        const { username, password, firstname, lastname, sex } = req.body;
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
         const sql = `INSERT INTO user (uuid, username, password, firstname, lastname, sex)
                      VALUES (uuid(), ${db_1.pool.escape(username)}, ${db_1.pool.escape(hashedPassword)},

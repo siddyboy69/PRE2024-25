@@ -41,8 +41,8 @@ export class AddMitarbeiterComponent {
     this.userService.register(
       this.username, this.password, '', this.firstName, this.lastName, this.sex, '', '', '', ''
     ).subscribe({
-      next: () => {
-        console.log('Employee added successfully');
+      next: (data) => {
+        console.log(data, 'Employee added successfully');
         this.router.navigate(['/homepage']);
       },
       error: (err) => {
