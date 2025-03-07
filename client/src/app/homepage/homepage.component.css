@@ -28,6 +28,7 @@
   cursor: pointer;
   display: flex;
   align-items: center;
+  gap: 20px;
 }
 
 .welcome-title {
@@ -38,12 +39,43 @@
   font-size: 1.5rem;
   color: #333;
   transition: color 0.3s ease;
-  position: absolute;
 }
 
 .hamburger-icon:hover {
   color: #A7D46C;
-  position: absolute;
+}
+
+.hamburger-icon,
+.cog-icon {
+  font-size: 1.5rem;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.hamburger-icon:hover,
+.cog-icon:hover {
+  color: #A7D46C;
+}
+
+.trash-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+
+.trash-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: #999;
+  transition: fill 0.3s ease;
+}
+
+.trash-icon:hover svg {
+  fill: #707070;
 }
 
 .manager-dashboard {
@@ -652,16 +684,4 @@
 ::ng-deep .mat-calendar-next-button:hover {
   color: #A7D46C !important;
 }
-.hamburger-icon,
-.cog-icon {
-  font-size: 1.5rem;
-  color: #333;
-  transition: color 0.3s ease;
-  position: absolute;
-}
 
-.hamburger-icon:hover,
-.cog-icon:hover {
-  color: #A7D46C;
-  position: absolute;
-}

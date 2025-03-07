@@ -409,8 +409,13 @@ export class HomepageComponent implements OnInit {
       }
     });
   }
+
   openUserSettings(): void {
       this.router.navigate(['/verwaltung']);
+  }
+
+  navigateToBin(): void {
+    this.router.navigate(['/bin']);
   }
 
 }

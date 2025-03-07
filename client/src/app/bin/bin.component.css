@@ -2,8 +2,10 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: #f4f7f9;
 }
 
+/* Navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -24,8 +26,17 @@
   text-align: center;
 }
 
-.navbar-menu-toggle {
+.back-button {
+  color: #A7D46C;
+  font-size: 1rem;
   cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s ease;
+  min-width: 150px;
+}
+
+.back-button:hover {
+  color: #92C257;
 }
 
 .hamburger-icon {
@@ -52,55 +63,79 @@
   background-color: #c82333;
 }
 
+/* Main wrapper - center content */
 .content-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 30px 15px;
   flex-grow: 1;
-  padding: 20px;
-  background-color: #f4f7f9;
 }
 
+/* Card style container */
 .bin-content {
   background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.bin-title {
-  margin-bottom: 15px;
-  font-size: 1.5rem;
-  color: #333;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.bin-table {
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
-  border-collapse: collapse;
-  background-color: #fff;
+  max-width: 900px;
 }
 
-.bin-table th, .bin-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
+/* Header title */
+.bin-title {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #555;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* Table mimic - flexible rows like form fields */
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+/* Label */
+.user-label {
+  font-weight: bold;
+  color: #666;
+  font-size: 0.95rem;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.bin-table th {
-  background-color: #f8f9fa;
+/* Value (employee name) */
+.user-value {
+  font-size: 1rem;
   color: #333;
 }
 
+/* Action buttons */
 .action-buttons {
   display: flex;
   gap: 10px;
+  justify-content: flex-end;
+  margin-top: 15px;
 }
 
 .restore-btn, .delete-btn {
   padding: 6px 12px;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 5px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
 }
 
 .restore-btn {
@@ -121,9 +156,26 @@
   background-color: #c82333;
 }
 
+/* Empty message */
 .empty-message {
   margin-top: 20px;
   font-style: italic;
   color: #888;
   text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .bin-content {
+    padding: 20px;
+  }
+
+  .user-label, .user-value {
+    font-size: 0.9rem;
+  }
+
+  .restore-btn, .delete-btn {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+  }
 }

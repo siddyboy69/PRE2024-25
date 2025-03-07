@@ -1,8 +1,8 @@
 <div class="container bin-container">
   <nav class="navbar">
-    <div class="navbar-menu-toggle" (click)="goBack()">
-      <span class="hamburger-icon">&#9664;</span>
-    </div>
+
+      <span class="back-button" (click)="goBack()">← Zurück zur Übersicht</span>
+
     <div class="navbar-title">Papierkorb - Gelöschte Mitarbeiter</div>
     <div class="navbar-actions">
       <button class="logout-button" (click)="logout()">Abmelden</button>
@@ -13,34 +13,20 @@
     <div class="bin-content">
       <h2 class="bin-title">Gelöschte Mitarbeiter</h2>
 
-      <table class="bin-table">
-        <thead>
-        <tr>
-          <th>Vorname</th>
-          <th>Nachname</th>
-          <th>Aktionen</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let user of users">
-          <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td class="action-buttons">
-            <button class="restore-btn" (click)="restore(user.id)">
-              Wiederherstellen
-            </button>
-            <button class="delete-btn" (click)="deletePermanently(user.id)">
-              Endgültig Löschen
-            </button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+      <div *ngIf="users.length > 0">
+        <div *ngFor="let user of users" class="user-row">
+          <div class="user-label">Vorname</div>
+          <div class="user-value">{{ user.firstName }}</div>
+          <div class="user-label">Nachname</div>
+          <div class="user-value">{{ user.lastName }}</div>
+          <div class="action-buttons">
+            <button class="restore-btn" (click)="restore(user.id)">Wiederherstellen</button>
+            <button class="delete-btn" (click)="deletePermanently(user.id)">Endgültig Löschen</button>
+          </div>
+        </div>
+      </div>
 
-      <p *ngIf="users.length === 0" class="empty-message">
-        Der Papierkorb ist leer.
-      </p>
+      <p *ngIf="users.length === 0" class="empty-message">Der Papierkorb ist leer.</p>
     </div>
   </div>
 </div>
-
