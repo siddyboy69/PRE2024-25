@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import {UserService} from '../../_service/user.service';
 import {NgFor, NgIf} from '@angular/common';
+import {MatIcon} from '@angular/material/icon';
 
 @Component({
   selector: 'app-bin',
   standalone: true,
-  imports: [NgFor, NgIf],
+  imports: [NgFor, NgIf, MatIcon],
   templateUrl: './bin.component.html',
   styleUrl: './bin.component.css'
 })
@@ -44,6 +45,6 @@ export class BinComponent {
 
   logout() {
     this.userService.logout();
-
   }
+
 }

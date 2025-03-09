@@ -70,12 +70,12 @@
 .trash-icon svg {
   width: 20px;
   height: 20px;
-  fill: #999;
+  fill: black;
   transition: fill 0.3s ease;
 }
 
 .trash-icon:hover svg {
-  fill: #707070;
+  fill: #A7D46C;
 }
 
 .manager-dashboard {

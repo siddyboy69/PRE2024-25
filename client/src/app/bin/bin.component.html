@@ -15,14 +15,19 @@
 
       <div *ngIf="users.length > 0">
         <div *ngFor="let user of users" class="user-row">
-          <div class="user-label">Vorname</div>
+          <div class="user-label">Vorname:</div>
           <div class="user-value">{{ user.firstName }}</div>
-          <div class="user-label">Nachname</div>
+          <div class="user-label">Nachname:</div>
           <div class="user-value">{{ user.lastName }}</div>
           <div class="action-buttons">
-            <button class="restore-btn" (click)="restore(user.id)">Wiederherstellen</button>
-            <button class="delete-btn" (click)="deletePermanently(user.id)">Endgültig Löschen</button>
+            <button class="restore-btn" (click)="restore(user.id)">
+              <mat-icon class="btn-icon">restore</mat-icon>
+            </button>
+            <button class="delete-btn" (click)="deletePermanently(user.id)">
+              <mat-icon class="btn-icon">delete_forever</mat-icon>
+            </button>
           </div>
+
         </div>
       </div>
 
