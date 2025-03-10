@@ -15,6 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepicker } from '@angular/material/datepicker';
+import * as XLSX from 'xlsx';
 
 interface Employee {
   id: number;
@@ -393,21 +394,20 @@ export class HomepageComponent implements OnInit {
   }
 
   generateReport(): void {
-    this.http.get('http://localhost:3000/users/generate-report', {
-      responseType: 'blob'
-    }).subscribe({
-      next: (response: Blob) => {
-        const url = window.URL.createObjectURL(response);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'work-hours-report.pdf';
-        a.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (err) => {
-        console.error('Error generating report:', err);
-      }
-    });
+    const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet([[]]);
+
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'empty_report.xlsx';
+    link.click();
+
+    URL.revokeObjectURL(link.href);
   }
 
   openUserSettings(): void {
