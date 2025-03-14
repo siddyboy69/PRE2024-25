@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { UserService } from '../../_service/user.service';
+import { UserService } from '../_service/user.service';
 import { Router, NavigationStart } from '@angular/router';
 import { Location, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';

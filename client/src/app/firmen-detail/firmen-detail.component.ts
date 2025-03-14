@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ActivatedRoute } from '@angular/router'
-import {FirmenService} from '../../_service/firmen.service';
-import {Firmen} from '../../_model/firmen';
+import {FirmenService} from '../_service/firmen.service';
+import {Firmen} from '../_model/firmen';
 
 @Component({
   selector: 'app-firmen-detail',

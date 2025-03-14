@@ -3,6 +3,7 @@ import cors from 'cors'
 import { userRouter } from './routes/user-routes'
 import { shiftRouter } from './routes/shift-routes'
 import { firmenRouter } from './routes/firmen-routes'
+import reportRouter from './routes/report-routes';
 
 const app = express()
 const port = 3000
@@ -23,6 +24,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use('/users', userRouter)
 app.use('/shifts', shiftRouter)
 app.use('/firmen', firmenRouter)
+app.use('/reports', reportRouter)
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {

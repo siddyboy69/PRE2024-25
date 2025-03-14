@@ -1,21 +1,20 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { UserService } from '../../_service/user.service';
+import { UserService } from '../_service/user.service';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { MessageService } from '../../_service/message.service';
-import { ShiftService } from '../../_service/shift.service';
-import { Break } from '../../_model/break';
-import { BreakService } from '../../_service/break.service';
+import { MessageService } from '../_service/message.service';
+import { ShiftService } from '../_service/shift.service';
+import { Break } from '../_model/break';
+import { BreakService } from '../_service/break.service';
 import { Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepicker } from '@angular/material/datepicker';
-import * as XLSX from 'xlsx';
+import {ReportService} from '../_service/report.service';
 
 interface Employee {
   id: number;
@@ -97,7 +96,8 @@ export class HomepageComponent implements OnInit {
     private http: HttpClient,
     private msg: MessageService,
     private shiftService: ShiftService,
-    private breakService: BreakService
+    private breakService: BreakService,
+    private reportService: ReportService
   ) {
     const storedUser = this.userService.loadUserFromLocalStorage();
     this.userService.user = storedUser;
@@ -393,13 +393,17 @@ export class HomepageComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
-  generateReport(): void {
+  /*async generateReport(): Promise<any> {
+    const newFile = new Date().getDate().toString() + "-report.xlsx";
+    await fs.copyFile("empty_report.xlsx", newFile);
+
+    var workbook = XLSX.readFile(newFile);
+
     const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet([[]]);
 
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.utils.book_append_sheet(workbook, ws, 'Report2-Test');
 
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
 
     const link = document.createElement('a');
@@ -408,6 +412,23 @@ export class HomepageComponent implements OnInit {
     link.click();
 
     URL.revokeObjectURL(link.href);
+  }*/
+
+  generateReport(): void {
+    this.reportService.downloadReport().subscribe({
+      next: (blob: Blob) => {
+        // Create a URL for the blob and trigger a download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error downloading report:', err);
+      }
+    });
   }
 
   openUserSettings(): void {

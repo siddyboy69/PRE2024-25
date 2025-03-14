@@ -19,7 +19,8 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "mysql": "^2.18.1",
-    "pdfkit": "^0.15.1"
+    "pdfkit": "^0.15.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -28,6 +29,7 @@
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/mysql": "^2.15.26",
+    "@types/xlsx": "^0.0.35",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.0"

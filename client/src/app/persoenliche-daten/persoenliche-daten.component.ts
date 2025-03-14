@@ -1,6 +1,6 @@
 // src/app/persoenliche-daten/persoenliche-daten.component.ts
 import { Component, OnInit } from '@angular/core';
-import { UserService} from '../../_service/user.service';
+import { UserService} from '../_service/user.service';
 
 @Component({
   selector: 'app-persoenliche-daten',

@@ -2,7 +2,7 @@ import { Component } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { Router } from '@angular/router'
 import { FormsModule } from '@angular/forms'
-import {FirmenService} from '../../_service/firmen.service';
+import {FirmenService} from '../_service/firmen.service';
 
 @Component({
   selector: 'app-add-firma',

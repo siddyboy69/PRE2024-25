@@ -339,8 +339,8 @@ exports.shiftRouter.get('/date/:userId/:date', verifyToken, (req, res) => {
             shiftStart: rows[0].formattedShiftStart,
             shiftEnd: rows[0].formattedShiftEnd,
             breaks: rows
-                .filter(row => row.break_id)
-                .map(row => ({
+                .filter((row) => row.break_id)
+                .map((row) => ({
                 id: row.break_id,
                 breakStart: row.formattedBreakStart,
                 breakEnd: row.formattedBreakEnd

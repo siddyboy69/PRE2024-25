@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import {ShiftService} from '../../_service/shift.service';
-import {UserService} from '../../_service/user.service';
-import {MonthlyStats} from '../../_model/monthly-stats';
+import {ShiftService} from '../_service/shift.service';
+import {UserService} from '../_service/user.service';
+import {MonthlyStats} from '../_model/monthly-stats';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatNativeDateModule} from '@angular/material/core';
 import {CommonModule} from '@angular/common';

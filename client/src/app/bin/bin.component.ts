@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { UserService } from '../../_service/user.service';
+import { UserService } from '../_service/user.service';
 import { NgFor, NgIf } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 
