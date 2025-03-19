@@ -393,27 +393,6 @@ export class HomepageComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
-  /*async generateReport(): Promise<any> {
-    const newFile = new Date().getDate().toString() + "-report.xlsx";
-    await fs.copyFile("empty_report.xlsx", newFile);
-
-    var workbook = XLSX.readFile(newFile);
-
-    const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet([[]]);
-
-    XLSX.utils.book_append_sheet(workbook, ws, 'Report2-Test');
-
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([wbout], { type: 'application/octet-stream' });
-
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'empty_report.xlsx';
-    link.click();
-
-    URL.revokeObjectURL(link.href);
-  }*/
-
   generateReport(): void {
     this.reportService.downloadReport().subscribe({
       next: (blob: Blob) => {

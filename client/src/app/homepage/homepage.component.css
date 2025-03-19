@@ -209,6 +209,35 @@
   background-color: #f1f3f5;
 }
 
+/* Group the report icon and the trash icon together */
+.icon-group {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between icons */
+}
+
+/* The new report icon styling (similar to your trash icon) */
+.report-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+
+.report-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: black; /* or #333, etc. */
+  transition: fill 0.3s ease;
+}
+
+.report-icon:hover svg {
+  fill: #A7D46C; /* same hover color as your trash icon */
+}
+
 .delete-icon {
   fill: #dc3545;
   cursor: pointer;
