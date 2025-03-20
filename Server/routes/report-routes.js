@@ -32,32 +32,29 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 // backend/routes/report-routes.ts
 const express = __importStar(require("express"));
 const report_service_1 = require("../services/report.service");
 const router = express.Router();
-// This route will generate and send the Excel file as a download
-router.get('/download-report', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const reportBuffer = yield (0, report_service_1.generateReport)();
-        // Set headers so that the browser downloads the file
+router.get('/download-report', (req, res, next) => {
+    const employeeId = parseInt(req.query.employeeId, 10);
+    const year = parseInt(req.query.year, 10);
+    const month = parseInt(req.query.month, 10);
+    if (!employeeId || !year || !month) {
+        res.status(400).send({ message: 'Missing or invalid query parameters' });
+        return;
+    }
+    // 2) Use promise chaining or async/await
+    (0, report_service_1.generateEmployeeReport)(employeeId, year, month)
+        .then((reportBuffer) => {
         res.setHeader('Content-Disposition', 'attachment; filename="report.xlsx"');
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.send(reportBuffer);
-    }
-    catch (error) {
-        console.error("Error generating report:", error);
+    })
+        .catch((error) => {
+        console.error('Error generating report:', error);
         res.status(500).send({ message: 'Error generating report' });
-    }
-}));
+    });
+});
 exports.default = router;

@@ -58,7 +58,7 @@
           </span>
 
           <span *ngIf="isAdmin && isSidebarOpen && employee.id !== -1" class="icon-group">
-              <span class="report-icon" (click)="generateReport()">
+              <span class="report-icon" (click)="generateReport(employee)">
                 <!-- Example "download" icon; feel free to replace with any SVG you like -->
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                   <path d="M.5 9.9a.5.5 0 0 1 .5.5V12a2 2 0 0 0 2

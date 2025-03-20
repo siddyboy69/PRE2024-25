@@ -393,7 +393,7 @@ export class HomepageComponent implements OnInit {
     this.router.navigate(['/']);
   }
 
-  generateReport(): void {
+  /*generateReport(): void {
     this.reportService.downloadReport().subscribe({
       next: (blob: Blob) => {
         // Create a URL for the blob and trigger a download
@@ -401,6 +401,27 @@ export class HomepageComponent implements OnInit {
         const link = document.createElement('a');
         link.href = url;
         link.download = 'report.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error downloading report:', err);
+      }
+    });
+  }*/
+
+  generateReport(employee: Employee): void {
+    // For demonstration, let's pick the current year/month from your existing properties
+    const year = this.currentDate.getFullYear();
+    const month = this.currentDate.getMonth() + 1;  // 1-based
+
+    this.reportService.downloadReport(employee.id, year, month).subscribe({
+      next: (blob: Blob) => {
+        // Create a URL for the blob and trigger a download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Report_${employee.firstname}_${employee.lastname}.xlsx`;
         link.click();
         window.URL.revokeObjectURL(url);
       },

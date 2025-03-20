@@ -11,9 +11,15 @@ export class ReportService {
 
   constructor(private http: HttpClient) {}
 
-  downloadReport(): Observable<Blob> {
+  downloadReport(employeeId: number, year: number, month: number): Observable<Blob> {
     const token = localStorage.getItem('auth_token') || '';
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    return this.http.get(`${this.apiUrl}/download-report`, { headers, responseType: 'blob' });
+
+    // Send them as query params: /reports/download-report?employeeId=xx&year=yy&month=mm
+    return this.http.get(
+      `${this.apiUrl}/download-report?employeeId=${employeeId}&year=${year}&month=${month}`,
+      { headers, responseType: 'blob' }
+    );
   }
+
 }
