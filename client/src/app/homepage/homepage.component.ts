@@ -110,7 +110,18 @@ export class HomepageComponent implements OnInit {
 
   ngOnInit(): void {
     this.updateDisplayDate();
-    if (!this.isAdmin) {
+
+    if (this.isAdmin) {
+      this.fetchEmployees();
+      this.fetchActiveShiftsCount();
+      this.fetchMonthlyHours();
+
+
+      setInterval(() => {
+        this.fetchActiveShiftsCount();
+        this.fetchMonthlyHours();
+      }, 6000000);
+    } else {
       this.checkForActiveShift();
     }
   }
@@ -232,11 +243,13 @@ export class HomepageComponent implements OnInit {
     }
   }
   // Employee management methods
+  employeeCount: number = 0;
   fetchEmployees(): void {
     this.userService.getUsers().subscribe({
       next: (employees) => {
         this.employees = employees;
         this.view_employees = employees;
+        this.employeeCount = employees.length;
       },
       error: (err) => {
         console.error('Error fetching employees:', err);
@@ -244,7 +257,18 @@ export class HomepageComponent implements OnInit {
       }
     });
   }
-
+  activeShiftsCount: number = 0;
+  fetchActiveShiftsCount(): void {
+    this.shiftService.getActiveShiftsCount().subscribe({
+      next: (count) => {
+        console.log('Raw count value received:', count);
+        this.activeShiftsCount = count;
+      },
+      error: (err) => {
+        console.error('Error fetching active shifts count:', err);
+      }
+    });
+  }
   deleteEmployee(employeeId: number, event: Event): void {
     event.stopPropagation();
     const confirmDelete = confirm('Sind Sie sicher, dass Sie diesen Mitarbeiter in den Papierkorb verschieben möchten?');
@@ -439,4 +463,15 @@ export class HomepageComponent implements OnInit {
     this.router.navigate(['/bin']);
   }
 
+  monthlyHours: number = 0;
+  fetchMonthlyHours(): void {
+    this.shiftService.getMonthlyTotalHours().subscribe({
+      next: (hours) => {
+        this.monthlyHours = hours;
+      },
+      error: (err) => {
+        console.error('Error fetching monthly hours:', err);
+      }
+    });
+  }
 }

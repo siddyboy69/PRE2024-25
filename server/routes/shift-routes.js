@@ -39,6 +39,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.shiftRouter = void 0;
 const express = __importStar(require("express"));
 const db_1 = require("../config/db");
+const {Request, Response} = require("express");
+const {pool} = require("../config/db");
+const {shiftRouter} = require("./shift-routes");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 exports.shiftRouter = express.Router();
 // Reuse the same JWT verification middleware from user-routes
@@ -448,5 +451,68 @@ exports.shiftRouter.get('/monthly-stats/:userId/:year/:month', verifyToken, (req
             dailyStats
         };
         res.status(200).send(stats);
+    });
+});
+// Get count of active shifts
+exports.shiftRouter.get('/count-active', verifyToken, (req, res) => {
+    console.log('Processing request to /shifts/count-active');
+
+    const query = `
+        SELECT COUNT(*) as activeShiftsCount
+        FROM shift s
+        JOIN user u ON s.user_id = u.id
+        WHERE s.shiftEnd IS NULL
+    `;
+
+    db_1.pool.query(query, (err, rows) => {
+        if (err) {
+            console.error('Error counting active shifts:', err);
+            res.status(500).send({ message: 'Error counting active shifts' });
+            return;
+        }
+
+        const count = rows[0].activeShiftsCount;
+        console.log('Active shifts count:', count);
+        res.status(200).json({ count });
+    });
+});
+// Get total work hours for current month
+exports.shiftRouter.get('/hours-this-month', verifyToken, (req, res) => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1; // JavaScript months are 0-indexed
+
+    const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01 00:00:00`;
+
+    let nextYear = year;
+    let nextMonth = month + 1;
+    if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear++;
+    }
+    const endOfMonth = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01 00:00:00`;
+
+    const query = `
+        SELECT 
+            SUM(
+                TIMESTAMPDIFF(MINUTE, s.shiftStart, 
+                    IFNULL(s.shiftEnd, NOW())
+                )
+            ) / 60 as totalHours
+        FROM shift s
+        WHERE s.shiftStart >= ?
+        AND s.shiftStart < ?
+        AND (s.shiftEnd IS NOT NULL OR s.shiftStart IS NOT NULL)
+    `;
+
+    db_1.pool.query(query, [startOfMonth, endOfMonth], (err, rows) => {
+        if (err) {
+            console.error('Error calculating total hours:', err);
+            res.status(500).send({ message: 'Error calculating total hours' });
+            return;
+        }
+
+        const totalHours = rows[0].totalHours || 0;
+        res.status(200).json({ hours: Math.round(totalHours * 10) / 10 });
     });
 });

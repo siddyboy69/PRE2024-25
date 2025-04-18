@@ -298,4 +298,24 @@ export class ShiftService {
         catchError(this.handleError<any>('getShiftForDate', null))
       );
   }
+  getActiveShiftsCount(): Observable<number> {
+    return this.http
+      .get<{count: number}>(`${this.apiUrl}/shifts/count-active`, {
+        headers: this.getAuthHeaders()
+      })
+      .pipe(
+        map(response => response.count),
+        catchError(this.handleError<number>('getActiveShiftsCount', 0))
+      );
+  }
+  getMonthlyTotalHours(): Observable<number> {
+    return this.http
+      .get<{hours: number}>(`${this.apiUrl}/shifts/hours-this-month`, {
+        headers: this.getAuthHeaders()
+      })
+      .pipe(
+        map(response => response.hours),
+        catchError(this.handleError<number>('getMonthlyTotalHours', 0))
+      );
+  }
 }

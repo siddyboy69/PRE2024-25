@@ -713,4 +713,53 @@
 ::ng-deep .mat-calendar-next-button:hover {
   color: #A7D46C !important;
 }
+/* Dashboard Cards Styling */
+.dashboard-summary {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
 
+.dashboard-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  width: calc(33% - 20px);
+  min-width: 200px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+  margin-right: 15px;
+  width: 48px;
+  height: 48px;
+  background-color: rgba(167, 212, 108, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-content h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #777;
+  font-weight: 500;
+}
+
+.card-value {
+  margin: 5px 0 0 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+}
