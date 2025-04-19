@@ -291,13 +291,15 @@ export class HomepageComponent implements OnInit {
       });
     }
   }
-
+  // In homepage.component.ts, modify the checkForActiveShift() method:
   checkForActiveShift(): void {
     const userId = this.userService.user.id;
     this.shiftService.getShiftForDate(userId, this.currentDate).subscribe({
       next: (shift: any) => {
         if (shift) {
-          // Set shift times
+          console.log('Retrieved shift:', shift); // Add this for debugging
+
+          // Set shift times - these should be string times from the backend
           this.activeShiftStart = shift.shiftStart;
           this.activeShiftEnd = shift.shiftEnd;
           this.currentShiftId = shift.id;
@@ -324,10 +326,24 @@ export class HomepageComponent implements OnInit {
             if (activeBreak) {
               this.currentBreakId = activeBreak.id;
               this.isOnBreak = true;
+            } else {
+              this.isOnBreak = false;
             }
           } else {
             this.breaks = [];
+            this.isOnBreak = false;
           }
+
+          // Add this console log to debug button states
+          console.log('After processing shift data:',
+            {
+              activeShiftStart: this.activeShiftStart,
+              activeShiftEnd: this.activeShiftEnd,
+              currentShiftId: this.currentShiftId,
+              isOnBreak: this.isOnBreak,
+              currentBreakId: this.currentBreakId
+            }
+          );
         } else {
           this.resetShiftStates();
         }

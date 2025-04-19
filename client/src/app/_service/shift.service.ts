@@ -258,11 +258,9 @@ export class ShiftService {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
-  /**
-   * getShiftForDate => example route that returns a single shift & breaks for a given date
-   */
+  // In shift.service.ts, modify the getShiftForDate() method:
   getShiftForDate(userId: number, date: Date): Observable<any> {
-    // format date as "YYYY-MM-DD"
+    // Format date as "YYYY-MM-DD"
     const formattedDate = date.toLocaleDateString('en-CA'); // e.g. "2024-11-15"
 
     return this.http
@@ -272,11 +270,11 @@ export class ShiftService {
         map(shift => {
           if (!shift) return null;
 
-          // If the backend returns shiftStart/shiftEnd as "YYYY-MM-DD HH:mm:ss"
-          // we can parse them for display or logic
-          const parseDateTime = (dateTimeStr: string) => {
+          // Parse dates for display
+          const parseDateTime = (dateTimeStr: string | null) => {
+            if (!dateTimeStr) return null;
             const dt = this.parseLocalDateTime(dateTimeStr);
-            if (!dt) return '';
+            if (!dt) return null;
             return dt.toLocaleTimeString('de-DE', {
               hour: '2-digit',
               minute: '2-digit',
