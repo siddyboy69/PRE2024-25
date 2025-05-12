@@ -53,7 +53,7 @@ interface BreakItem {
 export class HomepageComponent implements OnInit {
   @ViewChild('picker') picker!: MatDatepicker<Date>;
 
-  // Employee related properties
+
   employees: Employee[] = [];
   view_employees: Employee[] = [];
   isAdmin: boolean = false;
@@ -115,12 +115,12 @@ export class HomepageComponent implements OnInit {
       this.fetchEmployees();
       this.fetchActiveShiftsCount();
       this.fetchMonthlyHours();
-
+      this.fetchWeeklyStats();
 
       setInterval(() => {
         this.fetchActiveShiftsCount();
         this.fetchMonthlyHours();
-      }, 6000000);
+      }, 60000);
     } else {
       this.checkForActiveShift();
     }
@@ -489,5 +489,93 @@ export class HomepageComponent implements OnInit {
         console.error('Error fetching monthly hours:', err);
       }
     });
+  }
+
+  selectedEmployeeName: string = '';
+  chartData: Array<{dayName: string, hours: number, height: number}> = [];
+  weeklyStatsData: any = null;
+  private dayNames: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  onEmployeeSelectChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    const selectedValue = selectElement.value;
+
+    if (selectedValue === '') {
+      this.chartData = [];
+      this.selectedEmployeeName = '';
+      return;
+    }
+
+    if (selectedValue === 'all') {
+      this.selectedEmployeeId = null;
+      this.selectedEmployeeName = 'All Employees Combined';
+      this.updateChartData('all');
+    } else {
+      this.selectedEmployeeId = parseInt(selectedValue);
+      const selectedEmployee = this.employees.find(emp => emp.id === this.selectedEmployeeId);
+      this.selectedEmployeeName = selectedEmployee ?
+        `${selectedEmployee.firstname} ${selectedEmployee.lastname}` : 'Selected Employee';
+      this.updateChartData(this.selectedEmployeeId);
+    }
+  }
+  fetchWeeklyStats(): void {
+    this.http.get<any>(`${this.apiUrl}/shifts/weekly-stats`, { headers: this.getAuthHeaders() })
+      .subscribe({
+        next: (response) => {
+          console.log('Weekly stats response:', response);
+          this.weeklyStatsData = response;
+          // Update chart if an employee is selected
+          if (this.selectedEmployeeId !== null) {
+            this.updateChartData(this.selectedEmployeeId);
+          } else if (this.selectedEmployeeName === 'All Employees Combined') {
+            this.updateChartData('all');
+          }
+        },
+        error: (err) => {
+          console.error('Error fetching weekly stats:', err);
+          this.msg.addMessage('Error fetching weekly statistics');
+        }
+      });
+  }
+  private updateChartData(employeeIdOrAll: number | 'all'): void {
+    if (!this.weeklyStatsData) {
+      return;
+    }
+
+    const workDays = this.weeklyStatsData.weekDays;
+    let hoursData: number[] = [];
+
+    if (employeeIdOrAll === 'all') {
+      // Calculate combined hours for all employees
+      for (let i = 0; i < workDays.length; i++) {
+        const dayKey = workDays[i];
+        let totalHours = 0;
+
+        this.weeklyStatsData.workers.forEach((worker: any) => {
+          const dayHours = worker[`${dayKey}_hours`] || 0;
+          totalHours += dayHours;
+        });
+
+        hoursData.push(totalHours);
+      }
+    } else {
+      // Get data for specific employee
+      const selectedWorker = this.weeklyStatsData.workers.find((worker: any) => worker.id === employeeIdOrAll);
+
+      if (selectedWorker) {
+        for (let i = 0; i < workDays.length; i++) {
+          const dayKey = workDays[i];
+          const hours = selectedWorker[`${dayKey}_hours`] || 0;
+          hoursData.push(hours);
+        }
+      }
+    }
+
+    // Create chart data with heights for visualization
+    const maxHours = Math.max(...hoursData, 1); // Avoid division by zero
+    this.chartData = hoursData.map((hours, index) => ({
+      dayName: this.dayNames[index],
+      hours: Math.round(hours * 100) / 100, // Round to 2 decimal places
+      height: (hours / maxHours) * 150 // Scale to max 150px height
+    }));
   }
 }

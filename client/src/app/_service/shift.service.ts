@@ -258,7 +258,7 @@ export class ShiftService {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   }
 
-  // In shift.service.ts, modify the getShiftForDate() method:
+
   getShiftForDate(userId: number, date: Date): Observable<any> {
     // Format date as "YYYY-MM-DD"
     const formattedDate = date.toLocaleDateString('en-CA'); // e.g. "2024-11-15"

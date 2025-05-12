@@ -127,9 +127,37 @@
           </div>
         </div>
 
+        <div class="chart-section">
+          <h3>Employee Weekly Hours</h3>
+
+          <div class="chart-controls">
+            <label for="employeeSelect">Select Employee:</label>
+            <select id="employeeSelect" class="employee-select" (change)="onEmployeeSelectChange($event)">
+              <option value="" disabled selected>Choose an employee...</option>
+              <option value="all">All Employees (Combined)</option>
+              <option *ngFor="let employee of employees" [value]="employee.id">
+                {{employee.firstname}} {{employee.lastname}}
+              </option>
+            </select>
+          </div>
+
+          <div class="chart-container" *ngIf="chartData.length > 0">
+            <h4>Weekly Hours for {{selectedEmployeeName}}</h4>
+            <div class="chart-placeholder">
+              <div class="bar-chart">
+                <div *ngFor="let day of chartData" class="bar-container">
+                  <div class="bar" [style.height.px]="day.height">
+                    <span class="bar-value">{{day.hours}}h</span>
+                  </div>
+                  <div class="bar-label">{{day.dayName}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <p class="dashboard-p">Hier können Sie die Arbeitszeiten der Mitarbeiter verwalten und Berichte generieren. <br> Graphen, Skizzen, alles kommt hier rein</p>
       </section>
-
       <section *ngIf="!isAdmin" class="employee-shifts">
         <div class="date-navigation">
           <button class="nav-button nav-left" (click)="changeDate(-1)">←</button>

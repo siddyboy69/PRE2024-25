@@ -154,6 +154,9 @@ exports.shiftRouter.get('/all', verifyToken, (req, res) => {
         res.status(200).send(rows);
     });
 });
+exports.shiftRouter.get('/test-route', (req, res) => {
+    res.status(200).send({ message: 'Test route works!' });
+});
 // In shift-routes.ts
 exports.shiftRouter.get('/active/:userId', verifyToken, (req, res) => {
     const userId = req.params.userId;
@@ -514,5 +517,250 @@ exports.shiftRouter.get('/hours-this-month', verifyToken, (req, res) => {
 
         const totalHours = rows[0].totalHours || 0;
         res.status(200).json({ hours: Math.round(totalHours * 10) / 10 });
+    });
+});
+exports.shiftRouter.get('/weekly-stats', verifyToken, (req, res) => {
+    // Use current date instead of hardcoded date
+    const referenceDate = new Date();
+    const year = referenceDate.getUTCFullYear();
+
+    // Calculate the week number for the current date
+    const tempDate = new Date(Date.UTC(referenceDate.getUTCFullYear(), referenceDate.getUTCMonth(), referenceDate.getUTCDate()));
+    tempDate.setUTCDate(tempDate.getUTCDate() + 4 - (tempDate.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+    const weekNumber = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+
+    // Calculate Monday of current week
+    const dayOfWeek = referenceDate.getUTCDay();
+    const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+    const mondayOfWeek = new Date(referenceDate);
+    mondayOfWeek.setUTCDate(referenceDate.getUTCDate() - daysToSubtract);
+    mondayOfWeek.setUTCHours(0, 0, 0, 0);
+
+    // Generate all 7 days of the current week
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+        const day = new Date(mondayOfWeek);
+        day.setUTCDate(mondayOfWeek.getUTCDate() + i);
+        const formattedDate = day.toISOString().split('T')[0];
+        weekDays.push(formattedDate);
+    }
+
+    const weekStart = weekDays[0] + " 00:00:00";
+    const weekEnd = weekDays[6] + " 23:59:59";
+
+    const getUsersQuery = `
+        SELECT id, username, firstname, lastname 
+        FROM user 
+        WHERE deleted = 0 
+        ORDER BY lastname, firstname
+    `;
+
+    pool.query(getUsersQuery, (err, users) => {
+        if (err) {
+            console.error('Error fetching users:', err);
+            res.status(500).send({ message: 'Error fetching users' });
+            return;
+        }
+
+        const workerPromises = users.map(user => {
+            return new Promise((resolve, reject) => {
+                const workerData = {
+                    id: user.id,
+                    name: user.firstname && user.lastname ?
+                        `${user.firstname} ${user.lastname}` :
+                        user.username
+                };
+
+                // Initialize days with 0 minutes
+                const dayMinutes = {};
+                weekDays.forEach(day => {
+                    dayMinutes[day] = 0;
+                });
+
+                // Get shifts for this user in this week
+                const shiftsQuery = `
+                    SELECT s.id, s.shiftStart, s.shiftEnd
+                    FROM shift s
+                    WHERE s.user_id = ? 
+                    AND s.shiftStart BETWEEN ? AND ?
+                    AND s.shiftEnd IS NOT NULL
+                `;
+
+                pool.query(shiftsQuery, [user.id, weekStart, weekEnd], (shiftErr, shifts) => {
+                    if (shiftErr) {
+                        reject(shiftErr);
+                        return;
+                    }
+
+                    if (shifts.length === 0) {
+                        // Convert 0 minutes to different formats for each day
+                        weekDays.forEach(day => {
+                            // String format for display
+                            if (dayMinutes[day] === 0) {
+                                workerData[day] = "0 hours";
+                            } else {
+                                const hours = Math.floor(dayMinutes[day] / 60);
+                                const minutes = Math.round(dayMinutes[day] % 60);
+                                let result = "";
+                                if (hours > 0) {
+                                    result += `${hours} hour${hours !== 1 ? 's' : ''}`;
+                                }
+                                if (minutes > 0) {
+                                    if (result) result += " and ";
+                                    result += `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                                }
+                                workerData[day] = result;
+                            }
+
+                            // Numeric format for charts
+                            workerData[`${day}_hours`] = Math.round((dayMinutes[day] / 60) * 100) / 100;
+                            workerData[`${day}_minutes`] = Math.round(dayMinutes[day]);
+                        });
+
+                        workerData.hoursWorked = "0 hours";
+                        workerData.totalHours = 0;
+                        workerData.totalMinutes = 0;
+                        resolve(workerData);
+                        return;
+                    }
+
+                    let processedShifts = 0;
+
+                    shifts.forEach(shift => {
+                        const breaksQuery = `
+                            SELECT breakStart, breakEnd
+                            FROM break
+                            WHERE shift_id = ?
+                            AND breakEnd IS NOT NULL
+                        `;
+
+                        pool.query(breaksQuery, [shift.id], (breakErr, breaks) => {
+                            if (breakErr) {
+                                reject(breakErr);
+                                return;
+                            }
+
+                            const shiftStart = new Date(shift.shiftStart);
+                            const shiftEnd = new Date(shift.shiftEnd);
+
+                            // Process each day in the shift
+                            let currentDate = new Date(shiftStart);
+                            currentDate.setUTCHours(0, 0, 0, 0);
+
+                            while (currentDate < shiftEnd) {
+                                const nextDay = new Date(currentDate);
+                                nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+
+                                // Calculate portion of shift for this day
+                                const dayStart = new Date(Math.max(currentDate.getTime(), shiftStart.getTime()));
+                                const dayEnd = new Date(Math.min(nextDay.getTime(), shiftEnd.getTime()));
+
+                                // Calculate minutes worked for this day
+                                const totalDayMinutes = (dayEnd.getTime() - dayStart.getTime()) / (1000 * 60);
+
+                                // Calculate break minutes for this day
+                                let dayBreakMinutes = 0;
+                                breaks.forEach(breakPeriod => {
+                                    const breakStart = new Date(breakPeriod.breakStart);
+                                    const breakEnd = new Date(breakPeriod.breakEnd);
+
+                                    // Check if break overlaps with this day
+                                    const breakStartInDay = Math.max(breakStart.getTime(), dayStart.getTime());
+                                    const breakEndInDay = Math.min(breakEnd.getTime(), dayEnd.getTime());
+
+                                    if (breakStartInDay < breakEndInDay) {
+                                        dayBreakMinutes += (breakEndInDay - breakStartInDay) / (1000 * 60);
+                                    }
+                                });
+
+                                // Calculate net working minutes for this day
+                                const netDayMinutes = totalDayMinutes - dayBreakMinutes;
+
+                                // Add minutes to the appropriate day if it's in our week
+                                const dateKey = currentDate.toISOString().split('T')[0];
+                                if (weekDays.includes(dateKey)) {
+                                    dayMinutes[dateKey] += netDayMinutes;
+                                }
+
+                                // Move to next day
+                                currentDate = nextDay;
+                            }
+
+                            processedShifts++;
+
+                            // When all shifts are processed, convert to different formats
+                            if (processedShifts === shifts.length) {
+                                let totalMinutes = 0;
+                                weekDays.forEach(day => {
+                                    const dayWorkedMinutes = dayMinutes[day];
+
+                                    // String format for display
+                                    if (dayWorkedMinutes === 0) {
+                                        workerData[day] = "0 hours";
+                                    } else {
+                                        const hours = Math.floor(dayWorkedMinutes / 60);
+                                        const minutes = Math.round(dayWorkedMinutes % 60);
+                                        let result = "";
+                                        if (hours > 0) {
+                                            result += `${hours} hour${hours !== 1 ? 's' : ''}`;
+                                        }
+                                        if (minutes > 0) {
+                                            if (result) result += " and ";
+                                            result += `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                                        }
+                                        workerData[day] = result;
+                                    }
+
+                                    // Numeric format for charts (decimal hours)
+                                    workerData[`${day}_hours`] = Math.round((dayWorkedMinutes / 60) * 100) / 100;
+                                    // Raw minutes
+                                    workerData[`${day}_minutes`] = Math.round(dayWorkedMinutes);
+                                    totalMinutes += dayMinutes[day];
+                                });
+
+                                // Format total hours worked
+                                if (totalMinutes === 0) {
+                                    workerData.hoursWorked = "0 hours";
+                                } else {
+                                    const hours = Math.floor(totalMinutes / 60);
+                                    const minutes = Math.round(totalMinutes % 60);
+                                    let result = "";
+                                    if (hours > 0) {
+                                        result += `${hours} hour${hours !== 1 ? 's' : ''}`;
+                                    }
+                                    if (minutes > 0) {
+                                        if (result) result += " and ";
+                                        result += `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                                    }
+                                    workerData.hoursWorked = result;
+                                }
+
+                                // Add numeric totals for charts
+                                workerData.totalHours = Math.round((totalMinutes / 60) * 100) / 100;
+                                workerData.totalMinutes = Math.round(totalMinutes);
+                                resolve(workerData);
+                            }
+                        });
+                    });
+                });
+            });
+        });
+
+        Promise.all(workerPromises)
+            .then(workers => {
+                const response = {
+                    year,
+                    weekNumber,
+                    weekDays,
+                    workers
+                };
+                res.status(200).send(response);
+            })
+            .catch(error => {
+                console.error('Error calculating worker hours:', error);
+                res.status(500).send({ message: 'Error calculating worker hours' });
+            });
     });
 });
